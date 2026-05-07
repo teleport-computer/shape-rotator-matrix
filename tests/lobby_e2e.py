@@ -132,18 +132,32 @@ async def onboard_via_lobby(label):
         token=token, body={"msgtype": "m.text", "body": haiku})
     log(f"[{label}] haiku sent", s == 200, f"status={s}")
 
-    # Wait for the actual space invite.
+    # Wait for the actual space invite. Also collect any new lobby-room
+    # messages so we can assert the bot posts a signup-code URL on success.
     space_prefix = SPACE_ID.split(":")[0]
     deadline = time.time() + 30
     got_space = False
+    signup_url = None
     while time.time() < deadline:
         _s, sync = http("GET", "/_matrix/client/v3/sync?timeout=0", token=token)
         if any(rid.split(":")[0] == space_prefix
                for rid in sync.get("rooms", {}).get("invite", {}).keys()):
             got_space = True
+        for ev in (sync.get("rooms", {}).get("join", {})
+                   .get(lobby_room, {}).get("timeline", {})
+                   .get("events", [])):
+            if ev.get("type") != "m.room.message":
+                continue
+            body = (ev.get("content") or {}).get("body", "")
+            m = re.search(r"https?://\S+/signup\?code=\S+", body)
+            if m:
+                signup_url = m.group(0)
+        if got_space and signup_url:
             break
         await asyncio.sleep(1)
     log(f"[{label}] space invite after lobby", got_space)
+    log(f"[{label}] welcome signup-code url posted in ack",
+        bool(signup_url), f"url={signup_url}")
     if not got_space:
         return None
 
