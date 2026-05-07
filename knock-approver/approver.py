@@ -171,6 +171,11 @@ LOBBY_MAX_RESENDS     = 1
 # code so the new member can register accounts/agents on this server
 # without having to ping an admin. 0 disables the feature.
 LOBBY_WELCOME_CODE_USES = int(os.environ.get("LOBBY_WELCOME_CODE_USES", "10"))
+# Optional onboarding doc link, posted alongside the welcome signup code.
+LOBBY_WELCOME_DOC_URL = os.environ.get(
+    "LOBBY_WELCOME_DOC_URL",
+    "https://github.com/amiller/smithers-toys/blob/main/demos/shape-rotator-matrix-welcome.md",
+).strip()
 LOBBY_ALIAS_PREFIX = os.environ.get("LOBBY_ALIAS_PREFIX", "shape-rotator-lobby-")
 # Server name for room aliases. May be overridden by env; otherwise resolved
 # at startup from /whoami (parsing the homeserver's view of OUR_MXID).
@@ -469,6 +474,8 @@ async def process_vetting_room(client, room_id, meta, join_ev, msgs):
                 meta["invited_children"] = invited_children
                 signup_code, signup_url = _mint_welcome_signup_code(meta["mxid"])
                 ack = "nice — invited you to shape rotator. you can leave this room."
+                if LOBBY_WELCOME_DOC_URL:
+                    ack += f"\n\nonboarding doc: {LOBBY_WELCOME_DOC_URL}"
                 if signup_url:
                     ack += (f"\n\nhere's a {LOBBY_WELCOME_CODE_USES}-use signup "
                             f"code for adding accounts/agents to this server: "
@@ -756,6 +763,8 @@ async def process_lobby_room(room_id, meta, new_joins, msgs, lobby_mxid):
                 ack = ("you're already in shape rotator — see you in the space."
                        if already_member else
                        "nice — invited you to shape rotator. see you in the space.")
+                if LOBBY_WELCOME_DOC_URL:
+                    ack += f"\n\nonboarding doc: {LOBBY_WELCOME_DOC_URL}"
                 if signup_url:
                     ack += (f"\n\nhere's a {LOBBY_WELCOME_CODE_USES}-use signup "
                             f"code for adding accounts/agents to this server: "

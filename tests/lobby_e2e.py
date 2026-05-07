@@ -138,6 +138,7 @@ async def onboard_via_lobby(label):
     deadline = time.time() + 30
     got_space = False
     signup_url = None
+    saw_doc = False
     while time.time() < deadline:
         _s, sync = http("GET", "/_matrix/client/v3/sync?timeout=0", token=token)
         if any(rid.split(":")[0] == space_prefix
@@ -152,12 +153,15 @@ async def onboard_via_lobby(label):
             m = re.search(r"https?://\S+/signup\?code=\S+", body)
             if m:
                 signup_url = m.group(0)
-        if got_space and signup_url:
+            if "onboarding doc:" in body.lower():
+                saw_doc = True
+        if got_space and signup_url and saw_doc:
             break
         await asyncio.sleep(1)
     log(f"[{label}] space invite after lobby", got_space)
     log(f"[{label}] welcome signup-code url posted in ack",
         bool(signup_url), f"url={signup_url}")
+    log(f"[{label}] onboarding doc url posted in ack", saw_doc)
     if not got_space:
         return None
 
