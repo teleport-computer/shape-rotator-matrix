@@ -167,6 +167,15 @@ LOBBY_MAX_TRIES    = int(os.environ.get("LOBBY_MAX_TRIES",    "3"))
 LOBBY_CHALLENGE_DELAY = int(os.environ.get("LOBBY_CHALLENGE_DELAY_SEC", "5"))
 LOBBY_RESEND_AFTER    = int(os.environ.get("LOBBY_RESEND_AFTER_SEC", "120"))
 LOBBY_MAX_RESENDS     = 1
+# After successful promotion (lobby OR vetting), mint a multi-use signup
+# code so the new member can register accounts/agents on this server
+# without having to ping an admin. 0 disables the feature.
+LOBBY_WELCOME_CODE_USES = int(os.environ.get("LOBBY_WELCOME_CODE_USES", "10"))
+# Optional onboarding doc link, posted alongside the welcome signup code.
+LOBBY_WELCOME_DOC_URL = os.environ.get(
+    "LOBBY_WELCOME_DOC_URL",
+    "https://github.com/amiller/smithers-toys/blob/main/demos/shape-rotator-matrix-welcome.md",
+).strip()
 LOBBY_ALIAS_PREFIX = os.environ.get("LOBBY_ALIAS_PREFIX", "shape-rotator-lobby-")
 # Server name for room aliases. May be overridden by env; otherwise resolved
 # at startup from /whoami (parsing the homeserver's view of OUR_MXID).
@@ -270,6 +279,29 @@ async def _invite_to_children(mxid):
             print(f"[lobby] child {child} invite of {mxid} -> {st}: {body[:200]}",
                   flush=True)
     return invited
+
+
+def _mint_welcome_signup_code(mxid):
+    """Mint a fresh signup code labeled with mxid, persist to SIGNUP_PATH,
+    and return (code, url). Returns (None, None) if disabled (uses=0).
+
+    Same write surface as cmd_mint, but minted by the bot itself on
+    successful airlock promotion so the member can self-onboard their
+    agents without pinging an admin.
+    """
+    if LOBBY_WELCOME_CODE_USES <= 0:
+        return None, None
+    codes = _load(SIGNUP_PATH)
+    code = _new_code()
+    while code in codes:
+        code = _new_code() + secrets.token_hex(2)
+    codes[code] = {
+        "uses_remaining": LOBBY_WELCOME_CODE_USES,
+        "label": f"welcome:{mxid}",
+        "inviter": mxid,
+    }
+    _save(SIGNUP_PATH, codes)
+    return code, f"{HS_PUBLIC}/signup?code={code}"
 
 
 async def _lobby_leave_room(room_id, reason="lobby done"):
@@ -440,8 +472,15 @@ async def process_vetting_room(client, room_id, meta, join_ev, msgs):
                 meta["displayname"] = displayname
                 invited_children = await _invite_to_children(meta["mxid"])
                 meta["invited_children"] = invited_children
-                await _send_msg(client, room_id,
-                    "nice — invited you to shape rotator. you can leave this room.")
+                signup_code, signup_url = _mint_welcome_signup_code(meta["mxid"])
+                ack = "nice — invited you to shape rotator. you can leave this room."
+                if LOBBY_WELCOME_DOC_URL:
+                    ack += f"\n\nonboarding doc: {LOBBY_WELCOME_DOC_URL}"
+                if signup_url:
+                    ack += (f"\n\nhere's a {LOBBY_WELCOME_CODE_USES}-use signup "
+                            f"code for adding accounts/agents to this server: "
+                            f"{signup_url}")
+                await _send_msg(client, room_id, ack)
                 # Relay the captcha + haiku to FEED_ROOM so the rest of
                 # the community sees who joined and gets to enjoy their
                 # haiku. send_message_event auto-encrypts if FEED_ROOM is E2EE.
@@ -457,7 +496,8 @@ async def process_vetting_room(client, room_id, meta, join_ev, msgs):
                 audit({"type": "promoted", "user": meta["mxid"],
                        "displayname": displayname, "room": room_id,
                        "haiku": text, "title": meta.get("title"),
-                       "keyword": meta.get("keyword")})
+                       "keyword": meta.get("keyword"),
+                       "welcome_signup_code": signup_code})
                 print(f"[promoted] {meta['mxid']} ({displayname})", flush=True)
             else:
                 audit({"type": "promote_failed", "user": meta["mxid"],
@@ -719,9 +759,16 @@ async def process_lobby_room(room_id, meta, new_joins, msgs, lobby_mxid):
                 meta["promoted_at"] = time.time()
                 meta["promoted_user"] = mxid
                 invited_children = await _invite_to_children(mxid)
+                signup_code, signup_url = _mint_welcome_signup_code(mxid)
                 ack = ("you're already in shape rotator — see you in the space."
                        if already_member else
                        "nice — invited you to shape rotator. see you in the space.")
+                if LOBBY_WELCOME_DOC_URL:
+                    ack += f"\n\nonboarding doc: {LOBBY_WELCOME_DOC_URL}"
+                if signup_url:
+                    ack += (f"\n\nhere's a {LOBBY_WELCOME_CODE_USES}-use signup "
+                            f"code for adding accounts/agents to this server: "
+                            f"{signup_url}")
                 await _send_msg_raw(room_id, ack)
                 # FEED_ROOM relay (haiku celebration to #matrix-devops) is
                 # the main bot's job, not the lobby bot's — it lives in a
@@ -730,7 +777,8 @@ async def process_lobby_room(room_id, meta, new_joins, msgs, lobby_mxid):
                 audit({"type": "lobby_promoted", "user": mxid, "room": room_id,
                        "haiku": text, "title": title, "keyword": keyword,
                        "already_member": already_member,
-                       "invited_children": invited_children})
+                       "invited_children": invited_children,
+                       "welcome_signup_code": signup_code})
                 print(f"[lobby promoted] {mxid} ({displayname})"
                       f"{' (already in space)' if already_member else ''}"
                       f" children={len(invited_children)}/{len(SPACE_CHILD_IDS)}",
