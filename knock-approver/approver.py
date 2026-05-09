@@ -153,9 +153,11 @@ async def _login_with_password(username, password, device_id=None):
             return j.get("access_token"), j.get("device_id"), j.get("user_id")
 
 
-async def _whoami(token):
+async def _whoami_with_token(token):
     """Validate `token` via /whoami. Returns the JSON body on 200, None
-    otherwise. Doesn't print — caller decides what to log on failure."""
+    otherwise. Doesn't print — caller decides what to log on failure.
+    (Distinct from `_whoami(client)` lower in the file, which is the
+    mautrix-client-based /whoami used after the bot is fully initialized.)"""
     if not token:
         return None
     async with aiohttp.ClientSession(
@@ -197,7 +199,7 @@ async def _resolve_credentials(env_token, username, password_path, token_path,
     cached_device_id = _read_text(device_id_path)
 
     # Path 1: env token (sealed-env's bootstrap hint).
-    j = await _whoami(env_token)
+    j = await _whoami_with_token(env_token)
     if j:
         device_id = j.get("device_id")
         return (env_token, device_id, j.get("user_id"),
@@ -208,7 +210,7 @@ async def _resolve_credentials(env_token, username, password_path, token_path,
 
     # Path 2: cached token from prior self-heal.
     cached_token = _read_text(token_path)
-    j = await _whoami(cached_token)
+    j = await _whoami_with_token(cached_token)
     if j:
         device_id = j.get("device_id")
         print(f"[{label}] using cached token from {token_path}", flush=True)

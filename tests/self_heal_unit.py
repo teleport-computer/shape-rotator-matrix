@@ -49,7 +49,7 @@ def _patch_http(*, whoami_responses, login_responses):
         except StopIteration:
             return None, None, None
 
-    approver._whoami = fake_whoami
+    approver._whoami_with_token = fake_whoami
     approver._login_with_password = fake_login
     return whoami_calls, login_calls
 
