@@ -1966,9 +1966,9 @@ async def main():
 
     # Self-heal @shape-rotator-2 (main bot). Tries env token, then cached
     # /data token, then password /login (with cached device_id so the
-    # crypto store stays valid across re-mints). Only wipes crypto when
-    # the device_id actually changed — usually only on first run with
-    # existing /data, or after a true device rotation.
+    # crypto store stays valid across re-mints).
+    sr2_cached_device_before = _read_text(SR2_DEVICE_ID_PATH)
+    sr2_crypto_existed_before = CRYPTO_DB.exists()
     sr2_token, _sr2_device, sr2_mxid, sr2_reminted, sr2_device_changed = \
         await _resolve_credentials(
             TOKEN, "shape-rotator-2", SR2_PASSWORD_PATH,
@@ -1978,23 +1978,29 @@ async def main():
             "fatal: cannot authenticate as @shape-rotator-2. "
             "Either MATRIX_TOKEN is unset/invalid AND no password is "
             f"persisted at {SR2_PASSWORD_PATH}.")
-    if sr2_reminted:
-        TOKEN = sr2_token
-        AUTH = {"Authorization": f"Bearer {TOKEN}"}
-    if sr2_device_changed:
+    # Always wire the resolved token in — env_token-success path returns
+    # reminted=False but still gives back the working token, which may
+    # differ from the (possibly-stale) os.environ["MATRIX_TOKEN"] global.
+    TOKEN = sr2_token
+    AUTH = {"Authorization": f"Bearer {TOKEN}"}
+    # Wipe crypto if the device_id rotated (caught by _device_changed) OR
+    # if we just minted fresh against an existing crypto.db that has no
+    # cached device_id alongside it (transition case: pre-PR-#37 deploy
+    # left a stale pickle for an unknown device).
+    if sr2_device_changed or (
+            sr2_reminted and not sr2_cached_device_before and sr2_crypto_existed_before):
         _wipe_crypto_store()
 
     # Self-heal @onboarding-bot (lobby flow). Same shape; no crypto wipe
     # because the lobby sync loop is cleartext.
     if LOBBY_TOKEN != sr2_token:  # only when a dedicated lobby bot is configured
-        lobby_token, _, _, lobby_reminted, _ = await _resolve_credentials(
+        lobby_token, _, _, _lobby_reminted, _ = await _resolve_credentials(
             LOBBY_TOKEN, "onboarding-bot", ONBOARDING_BOT_PASSWORD_PATH,
             ONBOARDING_BOT_TOKEN_PATH, ONBOARDING_BOT_DEVICE_ID_PATH,
             "onboarding-bot")
         if lobby_token:
-            if lobby_reminted:
-                LOBBY_TOKEN = lobby_token
-                LOBBY_AUTH = {"Authorization": f"Bearer {LOBBY_TOKEN}"}
+            LOBBY_TOKEN = lobby_token
+            LOBBY_AUTH = {"Authorization": f"Bearer {LOBBY_TOKEN}"}
         else:
             print("[self-heal] onboarding-bot auth failed; lobby flow disabled",
                   flush=True)
