@@ -67,7 +67,10 @@ HS            = os.environ["HS"].rstrip("/")
 # Public-facing URL returned to signup clients (the client needs to point Element
 # at the public name, not the internal docker hostname).
 HS_PUBLIC     = os.environ.get("HS_PUBLIC", HS).rstrip("/")
-TOKEN         = os.environ["MATRIX_TOKEN"]
+# Sealed-env token is a *bootstrap* hint; if it's stale (M_UNKNOWN_TOKEN), the
+# self-heal path on startup re-mints it from the persisted password file. So
+# this can be empty on first boot and the bot will still come up via password.
+TOKEN         = os.environ.get("MATRIX_TOKEN", "")
 SPACE_ID      = os.environ["SPACE_ID"]
 REG_TOKEN     = os.environ.get("CONDUWUIT_REGISTRATION_TOKEN", "")
 CODES_PATH    = Path(os.environ.get("CODES_PATH",        "/data/codes.json"))
@@ -78,6 +81,16 @@ HTTP_PORT     = int(os.environ.get("HTTP_PORT", "8001"))
 # Bot's E2EE crypto store (megolm sessions, identity keys, peer device keys).
 # Lives on the same /data volume so it survives container restarts.
 CRYPTO_DB     = Path(os.environ.get("CRYPTO_DB", "/data/bot_crypto.db"))
+
+# Persisted bot passwords for self-mint-on-boot. If the env-provided access
+# token is stale (M_UNKNOWN_TOKEN at startup), the bot logs in with the
+# password and uses the resulting fresh token instead. The /data volume
+# survives container restarts so the bot stays self-healing across env-update
+# clobbers, password rotations, and admin reset-password operations.
+SR2_PASSWORD_PATH = Path(os.environ.get("SR2_PASSWORD_PATH",
+                                         "/data/shape_rotator_2_password"))
+ONBOARDING_BOT_PASSWORD_PATH = Path(os.environ.get("ONBOARDING_BOT_PASSWORD_PATH",
+                                         "/data/onboarding_bot_password"))
 
 # Comma-separated list of space-child room IDs that a freshly-signed-up user
 # should auto-join via the restricted rule. Typically: general, announcements,
@@ -97,6 +110,79 @@ AUTH = {"Authorization": f"Bearer {TOKEN}"}
 # the env var isn't configured.
 LOBBY_TOKEN = os.environ.get("ONBOARDING_BOT_TOKEN", "").strip() or TOKEN
 LOBBY_AUTH  = {"Authorization": f"Bearer {LOBBY_TOKEN}"}
+
+
+async def _login_with_password(username, password):
+    """POST /login as username/password. Returns (access_token, device_id, mxid)
+    or (None, None, None) on failure."""
+    body = json.dumps({
+        "type": "m.login.password",
+        "identifier": {"type": "m.id.user", "user": username},
+        "password": password,
+        "initial_device_display_name": f"approver-{username}",
+    }).encode()
+    async with aiohttp.ClientSession(headers={"Content-Type": "application/json"}) as s:
+        async with s.post(f"{HS}/_matrix/client/v3/login", data=body) as r:
+            if r.status != 200:
+                print(f"[self-heal] /login {username} -> {r.status}: "
+                      f"{(await r.text())[:200]}", flush=True)
+                return None, None, None
+            j = await r.json()
+            return j.get("access_token"), j.get("device_id"), j.get("user_id")
+
+
+async def _resolve_credentials(env_token, username, password_path, label):
+    """Validate env_token via /whoami; on M_UNKNOWN_TOKEN (or any failure),
+    fall back to logging in with the persisted password.
+
+    Returns (token, device_id, mxid, was_reminted) or (None, None, None, False)
+    if both paths fail.
+    """
+    if env_token:
+        async with aiohttp.ClientSession(
+            headers={"Authorization": f"Bearer {env_token}"}
+        ) as s:
+            try:
+                async with s.get(f"{HS}/_matrix/client/v3/account/whoami") as r:
+                    if r.status == 200:
+                        j = await r.json()
+                        return env_token, j.get("device_id"), j.get("user_id"), False
+                    print(f"[{label}] env token /whoami -> {r.status}; "
+                          f"falling back to password", flush=True)
+            except Exception as e:
+                print(f"[{label}] env token /whoami error: {e}; "
+                      f"falling back to password", flush=True)
+    if not password_path.exists():
+        print(f"[{label}] no password file at {password_path}; "
+              f"cannot self-mint", flush=True)
+        return None, None, None, False
+    pw = password_path.read_text().strip()
+    if not pw:
+        print(f"[{label}] password file at {password_path} is empty",
+              flush=True)
+        return None, None, None, False
+    new_token, new_device, mxid = await _login_with_password(username, pw)
+    if not new_token:
+        return None, None, None, False
+    print(f"[{label}] self-minted fresh token; device_id={new_device} mxid={mxid}",
+          flush=True)
+    return new_token, new_device, mxid, True
+
+
+def _wipe_crypto_store():
+    """Delete the bot's crypto store + sync-since cursor. Required after a
+    fresh /login because the new device_id won't match the pickled account
+    state (mautrix refuses to load a crypto store with a device-id mismatch),
+    and the previous sync cursor was tied to the old device's stream."""
+    for p in (CRYPTO_DB,
+              CRYPTO_DB.with_name(CRYPTO_DB.name + "-shm"),
+              CRYPTO_DB.with_name(CRYPTO_DB.name + "-wal"),
+              SYNC_STATE):
+        try:
+            p.unlink()
+            print(f"[self-heal] removed {p}", flush=True)
+        except FileNotFoundError:
+            pass
 
 
 # --- JSON-file helpers ---
@@ -1780,12 +1866,38 @@ async def run_http():
 # --- Main ---
 
 async def main():
-    global SERVER_NAME
+    global SERVER_NAME, TOKEN, AUTH, LOBBY_TOKEN, LOBBY_AUTH
+
+    # Self-heal @shape-rotator-2 (main bot). If MATRIX_TOKEN is stale, log in
+    # with the persisted password and wipe the crypto store (new device_id).
+    sr2_token, _sr2_device, sr2_mxid, sr2_reminted = await _resolve_credentials(
+        TOKEN, "shape-rotator-2", SR2_PASSWORD_PATH, "shape-rotator-2")
+    if not sr2_token:
+        raise SystemExit(
+            "fatal: cannot authenticate as @shape-rotator-2. "
+            "Either MATRIX_TOKEN is unset/invalid AND no password is "
+            f"persisted at {SR2_PASSWORD_PATH}.")
+    if sr2_reminted:
+        TOKEN = sr2_token
+        AUTH = {"Authorization": f"Bearer {TOKEN}"}
+        _wipe_crypto_store()
+
+    # Self-heal @onboarding-bot (lobby flow). Same shape; no crypto wipe
+    # because the lobby sync loop is cleartext.
+    if LOBBY_TOKEN != sr2_token:  # only when a dedicated lobby bot is configured
+        lobby_token, _, _, lobby_reminted = await _resolve_credentials(
+            LOBBY_TOKEN, "onboarding-bot", ONBOARDING_BOT_PASSWORD_PATH,
+            "onboarding-bot")
+        if lobby_token:
+            if lobby_reminted:
+                LOBBY_TOKEN = lobby_token
+                LOBBY_AUTH = {"Authorization": f"Bearer {LOBBY_TOKEN}"}
+        else:
+            print("[self-heal] onboarding-bot auth failed; lobby flow disabled",
+                  flush=True)
+
     if not SERVER_NAME:
-        async with aiohttp.ClientSession(headers=AUTH) as s:
-            async with s.get(f"{HS}/_matrix/client/v3/account/whoami") as r:
-                me = await r.json()
-        SERVER_NAME = me["user_id"].split(":", 1)[1]
+        SERVER_NAME = sr2_mxid.split(":", 1)[1]
     print(f"approver starting. space={SPACE_ID} signup_enabled={bool(REG_TOKEN)} "
           f"server_name={SERVER_NAME!r}", flush=True)
     for p in (CODES_PATH, SIGNUP_PATH, LOG_PATH, VETTING_PATH, LOBBY_PATH):
