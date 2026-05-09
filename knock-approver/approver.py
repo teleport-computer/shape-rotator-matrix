@@ -1299,6 +1299,16 @@ async def announce_lobby_events(client):
         return
     dirty = False
     for room_id, meta in lobby_state.items():
+        if room_id not in seen and meta.get("closed"):
+            # Closed before we ever saw it (e.g. seen file was wiped or
+            # never had this room): treat as already-announced. Without
+            # this, every cycle would re-fire 🚪/⚠️ for historical lobbies.
+            seen[room_id] = {
+                "started": list(meta.get("challenged", [])),
+                "failed":  bool(meta.get("closed_reason") not in (None, "promoted", "already_member")),
+            }
+            dirty = True
+            continue
         rec = seen.setdefault(room_id, {"started": [], "failed": False})
         for mxid in meta.get("challenged", []):
             if mxid in rec["started"]:
@@ -1317,11 +1327,11 @@ async def announce_lobby_events(client):
                 f"(reason={meta.get('closed_reason')}, code={meta.get('code', '?')})")
             rec["failed"] = True
             dirty = True
-    # Garbage-collect bookkeeping for closed lobbies — no further events
-    # will fire for them, so the announce record is no longer needed.
+    # Drop bookkeeping ONLY for rooms that have disappeared from
+    # lobby_state. Don't GC closed-but-still-tracked rooms — that would
+    # cause every subsequent cycle to re-add and re-fire them.
     for room_id in list(seen.keys()):
-        meta = lobby_state.get(room_id)
-        if meta is None or meta.get("closed"):
+        if room_id not in lobby_state:
             seen.pop(room_id, None)
             dirty = True
     if dirty:
