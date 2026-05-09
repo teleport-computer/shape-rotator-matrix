@@ -38,6 +38,9 @@ echo "  ADMIN_MXID=$ADMIN_MXID"
 echo "[runner] === announce_unit.py ==="
 python3 tests/announce_unit.py
 
+echo "[runner] === self_heal_unit.py ==="
+python3 tests/self_heal_unit.py
+
 # stdlib flow test (signup + knock-vetting). Uses landing nginx as HS so it
 # hits both the matrix endpoints AND /signup/api in one shot.
 echo "[runner] === smoke.py ==="

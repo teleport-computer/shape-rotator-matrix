@@ -92,6 +92,22 @@ SR2_PASSWORD_PATH = Path(os.environ.get("SR2_PASSWORD_PATH",
 ONBOARDING_BOT_PASSWORD_PATH = Path(os.environ.get("ONBOARDING_BOT_PASSWORD_PATH",
                                          "/data/onboarding_bot_password"))
 
+# Persisted minted tokens + device IDs. Set after a successful self-heal
+# /login. On next boot the bot prefers these over the (often-stale) env
+# token, so a sealed-env clobber doesn't force a re-mint. The cached
+# device_id is also passed back to /login on re-mint so Matrix returns a
+# fresh token *for the same device* — preserves the bot_crypto.db pickle
+# (keyed on mxid:device_id) and avoids the "new device joined, peers see
+# Unable to decrypt" cycle.
+SR2_TOKEN_PATH = Path(os.environ.get("SR2_TOKEN_PATH",
+                                      "/data/shape_rotator_2_token"))
+SR2_DEVICE_ID_PATH = Path(os.environ.get("SR2_DEVICE_ID_PATH",
+                                          "/data/shape_rotator_2_device_id"))
+ONBOARDING_BOT_TOKEN_PATH = Path(os.environ.get("ONBOARDING_BOT_TOKEN_PATH",
+                                                "/data/onboarding_bot_token"))
+ONBOARDING_BOT_DEVICE_ID_PATH = Path(os.environ.get("ONBOARDING_BOT_DEVICE_ID_PATH",
+                                                    "/data/onboarding_bot_device_id"))
+
 # Comma-separated list of space-child room IDs that a freshly-signed-up user
 # should auto-join via the restricted rule. Typically: general, announcements,
 # bot-noise. IDs MUST be unsuffixed (!foo, not !foo:server.tld).
@@ -112,15 +128,21 @@ LOBBY_TOKEN = os.environ.get("ONBOARDING_BOT_TOKEN", "").strip() or TOKEN
 LOBBY_AUTH  = {"Authorization": f"Bearer {LOBBY_TOKEN}"}
 
 
-async def _login_with_password(username, password):
-    """POST /login as username/password. Returns (access_token, device_id, mxid)
-    or (None, None, None) on failure."""
-    body = json.dumps({
+async def _login_with_password(username, password, device_id=None):
+    """POST /login as username/password. If device_id is given, Matrix returns
+    a fresh access_token for that *same* device — invalidates the previous
+    token but leaves the crypto state for that device intact. Without
+    device_id, the server allocates a new device.
+    Returns (access_token, device_id, mxid) or (None, None, None) on failure."""
+    payload = {
         "type": "m.login.password",
         "identifier": {"type": "m.id.user", "user": username},
         "password": password,
         "initial_device_display_name": f"approver-{username}",
-    }).encode()
+    }
+    if device_id:
+        payload["device_id"] = device_id
+    body = json.dumps(payload).encode()
     async with aiohttp.ClientSession(headers={"Content-Type": "application/json"}) as s:
         async with s.post(f"{HS}/_matrix/client/v3/login", data=body) as r:
             if r.status != 200:
@@ -131,49 +153,111 @@ async def _login_with_password(username, password):
             return j.get("access_token"), j.get("device_id"), j.get("user_id")
 
 
-async def _resolve_credentials(env_token, username, password_path, label):
-    """Validate env_token via /whoami; on M_UNKNOWN_TOKEN (or any failure),
-    fall back to logging in with the persisted password.
+async def _whoami(token):
+    """Validate `token` via /whoami. Returns the JSON body on 200, None
+    otherwise. Doesn't print — caller decides what to log on failure."""
+    if not token:
+        return None
+    async with aiohttp.ClientSession(
+        headers={"Authorization": f"Bearer {token}"}
+    ) as s:
+        try:
+            async with s.get(f"{HS}/_matrix/client/v3/account/whoami") as r:
+                if r.status == 200:
+                    return await r.json()
+        except Exception:
+            return None
+    return None
 
-    Returns (token, device_id, mxid, was_reminted) or (None, None, None, False)
-    if both paths fail.
+
+def _read_text(path):
+    try:
+        return path.read_text().strip() or None
+    except FileNotFoundError:
+        return None
+
+
+async def _resolve_credentials(env_token, username, password_path, token_path,
+                               device_id_path, label):
+    """Resolve a working access_token, in priority order:
+
+      1. env_token (sealed-env hint) — if /whoami says it's still live, use it
+      2. cached token persisted at token_path — if /whoami says it's live, use
+      3. /login with password + cached device_id (preserves crypto state)
+      4. /login with password + no device_id (fresh device — wipes crypto)
+
+    On any successful login (paths 3+4) the new token is persisted to
+    token_path and the device_id to device_id_path.
+
+    Returns (token, device_id, mxid, was_reminted, device_changed). The last
+    flag is True only if device_id differs from what's currently cached on
+    disk — in that case the caller must wipe bot_crypto.db before mautrix
+    starts up (the pickle is keyed on (mxid, device_id) and won't load).
     """
+    cached_device_id = _read_text(device_id_path)
+
+    # Path 1: env token (sealed-env's bootstrap hint).
+    j = await _whoami(env_token)
+    if j:
+        device_id = j.get("device_id")
+        return (env_token, device_id, j.get("user_id"),
+                False, _device_changed(cached_device_id, device_id))
     if env_token:
-        async with aiohttp.ClientSession(
-            headers={"Authorization": f"Bearer {env_token}"}
-        ) as s:
-            try:
-                async with s.get(f"{HS}/_matrix/client/v3/account/whoami") as r:
-                    if r.status == 200:
-                        j = await r.json()
-                        return env_token, j.get("device_id"), j.get("user_id"), False
-                    print(f"[{label}] env token /whoami -> {r.status}; "
-                          f"falling back to password", flush=True)
-            except Exception as e:
-                print(f"[{label}] env token /whoami error: {e}; "
-                      f"falling back to password", flush=True)
-    if not password_path.exists():
-        print(f"[{label}] no password file at {password_path}; "
-              f"cannot self-mint", flush=True)
-        return None, None, None, False
-    pw = password_path.read_text().strip()
-    if not pw:
-        print(f"[{label}] password file at {password_path} is empty",
+        print(f"[{label}] env token /whoami failed; trying cached token",
               flush=True)
-        return None, None, None, False
-    new_token, new_device, mxid = await _login_with_password(username, pw)
+
+    # Path 2: cached token from prior self-heal.
+    cached_token = _read_text(token_path)
+    j = await _whoami(cached_token)
+    if j:
+        device_id = j.get("device_id")
+        print(f"[{label}] using cached token from {token_path}", flush=True)
+        return (cached_token, device_id, j.get("user_id"),
+                False, _device_changed(cached_device_id, device_id))
+    if cached_token:
+        print(f"[{label}] cached token also stale; falling back to password",
+              flush=True)
+
+    # Paths 3+4: /login with password.
+    pw = _read_text(password_path)
+    if not pw:
+        print(f"[{label}] no usable password at {password_path}; cannot self-mint",
+              flush=True)
+        return None, None, None, False, False
+    new_token, new_device, mxid = await _login_with_password(
+        username, pw, device_id=cached_device_id)
+    if not new_token and cached_device_id:
+        # Maybe the server forgot the cached device. Retry without device_id
+        # to let it allocate a fresh one. The crypto wipe will happen.
+        print(f"[{label}] /login with cached device_id={cached_device_id} "
+              f"failed; retrying with fresh device", flush=True)
+        new_token, new_device, mxid = await _login_with_password(username, pw)
     if not new_token:
-        return None, None, None, False
-    print(f"[{label}] self-minted fresh token; device_id={new_device} mxid={mxid}",
+        return None, None, None, False, False
+    # Persist for next boot.
+    token_path.parent.mkdir(parents=True, exist_ok=True)
+    token_path.write_text(new_token)
+    device_id_path.write_text(new_device)
+    print(f"[{label}] self-minted fresh token; device_id={new_device} mxid={mxid} "
+          f"(cached_device={cached_device_id!r}; reused={new_device == cached_device_id})",
           flush=True)
-    return new_token, new_device, mxid, True
+    return new_token, new_device, mxid, True, _device_changed(cached_device_id, new_device)
+
+
+def _device_changed(cached, current):
+    """True if the cached device_id is non-empty and differs from current.
+    No prior cache (fresh /data) is NOT a device-change — there's no crypto
+    state to invalidate."""
+    return bool(cached) and bool(current) and cached != current
 
 
 def _wipe_crypto_store():
     """Delete the bot's crypto store + sync-since cursor. Required after a
-    fresh /login because the new device_id won't match the pickled account
-    state (mautrix refuses to load a crypto store with a device-id mismatch),
-    and the previous sync cursor was tied to the old device's stream."""
+    fresh /login that allocates a *new* device_id, because the pickle is
+    keyed on (mxid, device_id) and mautrix refuses to load a mismatched
+    store. With device_id reuse on /login (cf. _login_with_password), this
+    is rarely needed — only on a true rotation (cached device deleted on
+    server) or first-time bring-up against existing /data."""
     for p in (CRYPTO_DB,
               CRYPTO_DB.with_name(CRYPTO_DB.name + "-shm"),
               CRYPTO_DB.with_name(CRYPTO_DB.name + "-wal"),
@@ -1878,10 +1962,15 @@ async def run_http():
 async def main():
     global SERVER_NAME, TOKEN, AUTH, LOBBY_TOKEN, LOBBY_AUTH
 
-    # Self-heal @shape-rotator-2 (main bot). If MATRIX_TOKEN is stale, log in
-    # with the persisted password and wipe the crypto store (new device_id).
-    sr2_token, _sr2_device, sr2_mxid, sr2_reminted = await _resolve_credentials(
-        TOKEN, "shape-rotator-2", SR2_PASSWORD_PATH, "shape-rotator-2")
+    # Self-heal @shape-rotator-2 (main bot). Tries env token, then cached
+    # /data token, then password /login (with cached device_id so the
+    # crypto store stays valid across re-mints). Only wipes crypto when
+    # the device_id actually changed — usually only on first run with
+    # existing /data, or after a true device rotation.
+    sr2_token, _sr2_device, sr2_mxid, sr2_reminted, sr2_device_changed = \
+        await _resolve_credentials(
+            TOKEN, "shape-rotator-2", SR2_PASSWORD_PATH,
+            SR2_TOKEN_PATH, SR2_DEVICE_ID_PATH, "shape-rotator-2")
     if not sr2_token:
         raise SystemExit(
             "fatal: cannot authenticate as @shape-rotator-2. "
@@ -1890,13 +1979,15 @@ async def main():
     if sr2_reminted:
         TOKEN = sr2_token
         AUTH = {"Authorization": f"Bearer {TOKEN}"}
+    if sr2_device_changed:
         _wipe_crypto_store()
 
     # Self-heal @onboarding-bot (lobby flow). Same shape; no crypto wipe
     # because the lobby sync loop is cleartext.
     if LOBBY_TOKEN != sr2_token:  # only when a dedicated lobby bot is configured
-        lobby_token, _, _, lobby_reminted = await _resolve_credentials(
+        lobby_token, _, _, lobby_reminted, _ = await _resolve_credentials(
             LOBBY_TOKEN, "onboarding-bot", ONBOARDING_BOT_PASSWORD_PATH,
+            ONBOARDING_BOT_TOKEN_PATH, ONBOARDING_BOT_DEVICE_ID_PATH,
             "onboarding-bot")
         if lobby_token:
             if lobby_reminted:
