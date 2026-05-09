@@ -32,6 +32,12 @@ echo "  SPACE_ID=$SPACE_ID"
 echo "  SPACE_CHILD_IDS=$SPACE_CHILD_IDS"
 echo "  ADMIN_MXID=$ADMIN_MXID"
 
+# Pure-logic unit tests for the approver. Don't need continuwuity or any
+# /shared env — run first so a logic regression fails fast before the
+# slower e2e tests boot.
+echo "[runner] === announce_unit.py ==="
+python3 tests/announce_unit.py
+
 # stdlib flow test (signup + knock-vetting). Uses landing nginx as HS so it
 # hits both the matrix endpoints AND /signup/api in one shot.
 echo "[runner] === smoke.py ==="
