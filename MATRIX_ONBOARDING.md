@@ -211,6 +211,45 @@ Effect: randos who join can `/sync` and react but cannot send `m.room.message` �
 
 ---
 
+## Migrating an E2EE bot between machines (THE BIG ONE)
+
+**The olm/megolm identity lives in the bot's local `nio_store/`, NOT in MXID + `device_id` + access token.** If you redeploy a bot to a new host (laptop → TEE, CVM A → CVM B, container with fresh volume) without copying `nio_store`, nio generates fresh olm keys, uploads them under the same `device_id`, and Matrix overwrites the previous identity on the homeserver. But every cohort member's Element client still has the **old** identity cached and silently refuses to share megolm keys with the "new" device. Result: bot syncs fine, receives encrypted events, never decrypts any. Looks identical to "bot isn't running" — no error in logs, just silence.
+
+This bites every Matrix-bot redeploy. Workflow:
+
+1. **Stop the old bot** (don't let two run under the same `device_id`).
+2. **Tar the `nio_store` directory** from the source (e.g. `~/.calendar-bot/nio_store/`).
+3. **Place it at the same path on the destination** before first launch. For a tee-daemon image-runtime tenant, this means populating the named volume via a helper container before the project's container starts:
+   ```sh
+   docker run -d --name nio-restore -v <project>-store:/store alpine sleep 60
+   docker cp /tmp/nio_store.tgz nio-restore:/tmp/
+   docker exec nio-restore sh -c \
+     'rm -rf /store/nio && tar xzf /tmp/nio_store.tgz -C /store && mv /store/nio_store /store/nio'
+   docker rm -f nio-restore
+   ```
+4. **Start the new bot.** Boots with the original olm identity; Element clients already trust it; key sharing carries over.
+
+If you forgot and already uploaded fresh keys, you can still recover: tar whatever nio_store is still around (the original machine's, or any decommissioned host's), restore it as above, restart. The homeserver accepts the device-keys re-upload and existing clients re-sync. Element may briefly show a "session reset" warning.
+
+---
+
+## Tee-daemon (gVisor) image-runtime DNS
+
+Tee-daemon runs image-runtime tenants under `runsc` (gVisor) for isolation. The sandbox **cannot reach Docker's embedded DNS at `127.0.0.11`** — that resolver lives outside gVisor's user-space network stack. The container boots with `/etc/resolv.conf` pointing at `127.0.0.11`, every libc lookup fails with `Errno -3 Temporary failure in name resolution`, and the bot crashes on its first outbound call (gspread, Anthropic, openai, etc.).
+
+Symptom: `/cadence/health` returns 500 from ingress; `docker logs tee-image-<name>-dev` shows a `socket.gaierror` traceback.
+
+**Fix:** entrypoint script that unconditionally overwrites `/etc/resolv.conf`:
+```sh
+#!/bin/sh
+echo "nameserver 8.8.8.8" > /etc/resolv.conf
+echo "nameserver 1.1.1.1" >> /etc/resolv.conf
+exec python3 /app/bot.py
+```
+Do **not** gate this on `[ ! -s /etc/resolv.conf ]` — the file is non-empty (it has the bad 127.0.0.11 line), just unreachable.
+
+---
+
 ## Container / volume hazards
 
 Staging compose mounts EVERYWHERE state lands to named volumes: `hermes_data:/root/.hermes`, `claude_data:/root/.claude`, plus `opt_data`, `hermes_install`, `usr_local`, `var_lib`, `etc_data`, `home_data`, `root_home`. **Missing any one → crypto.db wiped on next CVM recreate → re-bootstrap required.** Image is pinned by `@sha256:...` in compose so re-pulls don't stomp state.
