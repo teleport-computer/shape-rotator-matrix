@@ -1407,7 +1407,14 @@ async def announce_lobby_events(client):
             dirty = True
         if (meta.get("closed") and not rec["failed"]
                 and meta.get("closed_reason") not in (None, "promoted", "already_member")):
-            users = ", ".join(meta.get("challenged", []) or ["(no users joined)"])
+            if meta.get("closed_reason") == "timeout" and not meta.get("challenged"):
+                # Ghost room: link-preview bots and aborted clicks mint a
+                # /join/api room but never produce a real join. Mark seen
+                # so we don't re-evaluate, but don't notify.
+                rec["failed"] = True
+                dirty = True
+                continue
+            users = ", ".join(meta["challenged"])
             await _send_msg(client, OPERATOR_NOTIFY_ROOM,
                 f"⚠️ lobby failed for {users} "
                 f"(reason={meta.get('closed_reason')}, code={meta.get('code', '?')})")
