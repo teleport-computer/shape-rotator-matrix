@@ -144,6 +144,27 @@ jobs:
           echo "[delay] heads-up posted; sleeping ${DELAY}s before phala deploy"
           sleep "$DELAY"
 
+      - name: going-down notice
+        env:
+          KNOCK_APPROVER_TOKEN: ${{ secrets.KNOCK_APPROVER_TOKEN }}
+          ADMIN_COMMAND_ROOM: ${{ secrets.ADMIN_COMMAND_ROOM }}
+          GH_RUN: ${{ github.run_id }}
+        run: |
+          # Posted right before the CVM goes down — explicit "outage
+          # starts now" signal. By this point the cancel window is closed.
+          # Also records the timestamp used to report downtime in the
+          # success message.
+          if [ -n "${ADMIN_COMMAND_ROOM:-}" ] && [ -n "${KNOCK_APPROVER_TOKEN:-}" ]; then
+            ROOM_ENC=$(python3 -c "import urllib.parse,sys;print(urllib.parse.quote(sys.argv[1]))" "$ADMIN_COMMAND_ROOM")
+            BODY=$(python3 -c "import json; print(json.dumps({'msgtype':'m.text','body':'🔻 restarting CVM now — mtrx.shaperotator.xyz briefly unreachable, back in ~2 min'}))")
+            curl -fsS -X PUT \
+              -H "Authorization: Bearer $KNOCK_APPROVER_TOKEN" \
+              -H 'Content-Type: application/json' \
+              "https://mtrx.shaperotator.xyz/_matrix/client/v3/rooms/$ROOM_ENC/send/m.room.message/predown-$GH_RUN" \
+              -d "$BODY"
+          fi
+          echo "DOWNTIME_START_TS=$(date +%s)" >> "$GITHUB_ENV"
+
       - name: phala deploy
         env:
           PHALA_CLOUD_API_KEY: ${{ secrets.PHALA_API_KEY }}
@@ -202,6 +223,9 @@ jobs:
             echo "::error::homeserver not returning 200 on /versions"
             exit 1
           fi
+          # Record recovery timestamp — used by the success-message step
+          # to report total downtime.
+          echo "DOWNTIME_END_TS=$(date +%s)" >> "$GITHUB_ENV"
           # Bot health: /whoami should return @shape-rotator-2.
           who=$(curl -sS -H "Authorization: Bearer $KNOCK_APPROVER_TOKEN" \
             https://mtrx.shaperotator.xyz/_matrix/client/v3/account/whoami \
@@ -231,7 +255,17 @@ jobs:
           sha = os.environ.get("GH_SHA", "")[:7]
           msg = os.environ.get("GH_MSG", "(no commit message)")
           run = os.environ.get("GH_RUN", "")
-          body = f"🚀 deployed {sha} to dstack-matrix\n\n{msg}\n\nrun: https://github.com/Account-Link/shape-rotator-matrix/actions/runs/{run}"
+          start = os.environ.get("DOWNTIME_START_TS", "")
+          end = os.environ.get("DOWNTIME_END_TS", "")
+          downtime = ""
+          if start and end:
+              try:
+                  d = int(end) - int(start)
+                  if d >= 0:
+                      downtime = f"\ndowntime: ~{d}s"
+              except ValueError:
+                  pass
+          body = f"🚀 deployed {sha} to dstack-matrix{downtime}\n\n{msg}\n\nrun: https://github.com/Account-Link/shape-rotator-matrix/actions/runs/{run}"
           print(json.dumps({"msgtype": "m.text", "body": body}))
           PY
           )
