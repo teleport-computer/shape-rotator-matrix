@@ -341,10 +341,11 @@ async def main():
     log("[invite-fail] user joins the room", s == 200, f"status={s}")
     if s == 200:
         # Phase A: the joiner's space invite 500s — nothing may be consumed.
-        _meta = _approver._load(_approver.WELCOME_PATH)[_code]
+        _welcome_all = _approver._load(_approver.WELCOME_PATH)
+        _meta = _welcome_all[_code]
         await _approver.process_welcome_join(
             _code, _meta, "@e2e-invitefail-remote:unreachable.invalid",
-            _lobby_mxid)
+            _lobby_mxid, _welcome_all)
 
         _uses = _approver._load(_approver.CODES_PATH)[_code]["uses_remaining"]
         log("[invite-fail] 500'd invite consumed no use", _uses == 3,
@@ -363,9 +364,10 @@ async def main():
 
         # Phase B: the rejoin retry, a joiner the HS accepts — exactly one
         # use goes, the invite + confirmation actually land.
-        _meta2 = _approver._load(_approver.WELCOME_PATH)[_code]
+        _welcome_all2 = _approver._load(_approver.WELCOME_PATH)
+        _meta2 = _welcome_all2[_code]
         await _approver.process_welcome_join(
-            _code, _meta2, _if_mxid, _lobby_mxid)
+            _code, _meta2, _if_mxid, _lobby_mxid, _welcome_all2)
         _uses2 = _approver._load(_approver.CODES_PATH)[_code]["uses_remaining"]
         log("[invite-fail] retry consumed exactly one use", _uses2 == 2,
             f"uses_remaining={_uses2}")

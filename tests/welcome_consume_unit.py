@@ -62,6 +62,7 @@ class _Session:
     invite must not even try to post the confirmation."""
     invite_status = None
     invite_body = ""
+    send_status = 200
 
     def __init__(self, headers=None):
         pass
@@ -75,6 +76,8 @@ class _Session:
         raise AssertionError(f"unexpected POST {url}")
     def put(self, url, json=None):
         if "/send/m.room.message/" in url:
+            if _Session.send_status != 200:
+                return _Ctx(_Resp(_Session.send_status, '{"errcode":"M_UNKNOWN"}'))
             sent.append(json["body"])
             return _Ctx(_Resp(200, {"event_id": "$1"}))
         raise AssertionError(f"unexpected PUT {url}")
@@ -82,6 +85,7 @@ class _Session:
 
 def _install(invite_status, invite_body=""):
     _Session.invite_status, _Session.invite_body = invite_status, invite_body
+    _Session.send_status = 200
     approver.aiohttp.ClientSession = _Session
 
 
@@ -109,7 +113,8 @@ def test_failed_invite_consumes_nothing():
     not arm the exactly-once guard, and must not post a confirmation."""
     meta = _seed(uses=5)
     _install(500, '{"errcode":"M_UNKNOWN"}')
-    asyncio.run(approver.process_welcome_join("dev", meta, JOINER, LOBBY))
+    asyncio.run(approver.process_welcome_join(
+        "dev", meta, JOINER, LOBBY, {"dev": meta}))
     assert _uses() == 5, _uses()
     assert "joined_by" not in meta, meta
     assert _audit_types() == ["welcome_invite_failed"], _audit_types()
@@ -119,7 +124,8 @@ def test_failed_invite_consumes_nothing():
 def test_rate_limited_invite_consumes_nothing():
     meta = _seed(uses=5)
     _install(429, '{"errcode":"M_LIMIT_EXCEEDED"}')
-    asyncio.run(approver.process_welcome_join("dev", meta, JOINER, LOBBY))
+    asyncio.run(approver.process_welcome_join(
+        "dev", meta, JOINER, LOBBY, {"dev": meta}))
     assert _uses() == 5, _uses()
     assert "joined_by" not in meta, meta
     assert _audit_types() == ["welcome_invite_failed"], _audit_types()
@@ -131,9 +137,11 @@ def test_retry_after_failure_consumes_once():
     consume + invite + confirm path — exactly one use taken."""
     meta = _seed(uses=5)
     _install(500, '{"errcode":"M_UNKNOWN"}')
-    asyncio.run(approver.process_welcome_join("dev", meta, JOINER, LOBBY))
+    asyncio.run(approver.process_welcome_join(
+        "dev", meta, JOINER, LOBBY, {"dev": meta}))
     _install(200, "{}")
-    asyncio.run(approver.process_welcome_join("dev", meta, JOINER, LOBBY))
+    asyncio.run(approver.process_welcome_join(
+        "dev", meta, JOINER, LOBBY, {"dev": meta}))
     assert _uses() == 4, _uses()
     assert meta["joined_by"] == JOINER, meta
     assert _audit_types() == ["welcome_invite_failed", "welcome_joined"]
@@ -143,18 +151,69 @@ def test_retry_after_failure_consumes_once():
 def test_already_member_403_consumes():
     meta = _seed(uses=5)
     _install(403, '{"errcode":"M_FORBIDDEN"}')
-    asyncio.run(approver.process_welcome_join("dev", meta, JOINER, LOBBY))
+    asyncio.run(approver.process_welcome_join(
+        "dev", meta, JOINER, LOBBY, {"dev": meta}))
     assert _uses() == 4, _uses()
     assert meta["joined_by"] == JOINER, meta
     assert _audit_types() == ["welcome_joined"], _audit_types()
     assert sent == ["you're already in shape rotator — see you in the space."], sent
 
 
+def test_confirmation_failure_consumes_once():
+    """The third PR #91 review finding: the use was persisted before the
+    confirmation and the joined_by guard, so a failed confirmation send
+    left the decrement on disk with the guard unset — the replayed join
+    re-invited and decremented again. Both files now hit disk before the
+    post; the send still raises loudly (no fallback), but a replay of the
+    join is a no-op because the guard is already persisted."""
+    meta = _seed(uses=5)
+    _install(200, "{}")
+    _Session.send_status = 500
+    try:
+        asyncio.run(approver.process_welcome_join(
+            "dev", meta, JOINER, LOBBY, {"dev": meta}))
+        raise AssertionError("send should have raised")
+    except RuntimeError:
+        pass
+    assert _uses() == 4, _uses()
+    disk = approver._load(approver.WELCOME_PATH)["dev"]
+    assert disk["joined_by"] == JOINER, disk
+    assert _audit_types() == ["welcome_joined"], _audit_types()
+
+
+def test_crash_between_saves_leaves_use_unconsumed():
+    """The two file writes are adjacent but still separate; a crash in
+    that window must strand the use, never double-consume it. The guard
+    is written first, so the crash lands with the guard armed and the
+    decrement not yet persisted — the replayed join is a no-op."""
+    meta = _seed(uses=5)
+    _install(200, "{}")
+    real_save = approver._save
+    def _crash_on_codes(path, data):
+        if path == approver.CODES_PATH:
+            raise RuntimeError("disk died between the two saves")
+        real_save(path, data)
+    approver._save = _crash_on_codes
+    try:
+        asyncio.run(approver.process_welcome_join(
+            "dev", meta, JOINER, LOBBY, {"dev": meta}))
+        raise AssertionError("save should have raised")
+    except RuntimeError:
+        pass
+    finally:
+        approver._save = real_save
+    assert _uses() == 5, _uses()
+    disk = approver._load(approver.WELCOME_PATH)["dev"]
+    assert disk["joined_by"] == JOINER, disk
+
+
 if __name__ == "__main__":
     for t in (test_failed_invite_consumes_nothing,
               test_rate_limited_invite_consumes_nothing,
               test_retry_after_failure_consumes_once,
-              test_already_member_403_consumes):
+              test_already_member_403_consumes,
+              test_confirmation_failure_consumes_once,
+              test_crash_between_saves_leaves_use_unconsumed):
         t()
         print(f"ok: {t.__name__}")
     print("all tests passed")

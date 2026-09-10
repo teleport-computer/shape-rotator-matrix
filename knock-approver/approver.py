@@ -1193,14 +1193,14 @@ def iter_welcome_joins(rooms_data, welcome_state, self_mxid):
             yield code, meta, joiner
 
 
-async def process_welcome_join(code, meta, joiner, lobby_mxid):
+async def process_welcome_join(code, meta, joiner, lobby_mxid, welcome):
     """Consume one code use and promote the first joiner of its welcome room:
     invite the joiner to the space, then — only once the invite went out
-    (200) or they were already in (403) — decrement uses_remaining
-    (persisted), post the confirmation and set joined_by/joined_at (the
-    exactly-once guard for replayed/duplicate joins). Any other invite
-    status consumes nothing and leaves the guard unset, so a later join
-    event (the joiner rejoining) retries instead of finding the code
+    (200) or they were already in (403) — decrement uses_remaining and set
+    joined_by/joined_at (the exactly-once guard for replayed/duplicate
+    joins), persisting both files before the confirmation post. Any other
+    invite status consumes nothing and leaves the guard unset, so a later
+    join event (the joiner rejoining) retries instead of finding the code
     burned with no invite."""
     endorser = _endorser_for_code(code, lobby_mxid)
     st, body = await _lobby_invite_to_space(
@@ -1220,18 +1220,25 @@ async def process_welcome_join(code, meta, joiner, lobby_mxid):
     entry = codes.get(code) or {}
     entry["uses_remaining"] = max(0, entry.get("uses_remaining", 0) - 1)
     codes[code] = entry
+
+    meta["joined_by"] = joiner
+    meta["joined_at"] = time.time()
+    # The confirmation post is the one fallible call left in this path and
+    # raises on failure, so both files must already be on disk by then: a
+    # failure after only the decrement was saved left the guard unset, and
+    # the replayed join re-invited and decremented again. The guard is saved
+    # first so a crash between the two writes strands a use unconsumed,
+    # never consumed twice.
+    _save(WELCOME_PATH, welcome)
     _save(CODES_PATH, codes)
+    audit({"type": "welcome_joined", "user": joiner, "code": code,
+           "room": meta["room_id"], "uses_left": entry["uses_remaining"],
+           "already_member": st == 403})
 
     ack = ("invite sent — accept it in Element and you're in."
            if st == 200 else
            "you're already in shape rotator — see you in the space.")
     await _send_msg_raw(meta["room_id"], ack)
-
-    meta["joined_by"] = joiner
-    meta["joined_at"] = time.time()
-    audit({"type": "welcome_joined", "user": joiner, "code": code,
-           "room": meta["room_id"], "uses_left": entry["uses_remaining"],
-           "already_member": st == 403})
     print(f"[welcome] {joiner} joined via {code} "
           f"(uses_left={entry['uses_remaining']})", flush=True)
 
@@ -1408,7 +1415,8 @@ async def lobby_sync_loop():
         w_dirty = False
         for code, meta, joiner in iter_welcome_joins(
                 rooms_data, welcome, lobby_mxid):
-            await process_welcome_join(code, meta, joiner, lobby_mxid)
+            await process_welcome_join(
+                code, meta, joiner, lobby_mxid, welcome)
             w_dirty = True
         if await cleanup_welcome_rooms(welcome, lobby_mxid):
             w_dirty = True

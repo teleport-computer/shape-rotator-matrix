@@ -45,12 +45,20 @@ The child-room joins via the restricted rule are asserted over the real API in
 - **A hard-failing space invite must not burn the code (PR #91 review finding #2)**: the use
   used to be decremented and `joined_by` armed *before* the invite was attempted, so any
   non-200/403 status permanently consumed the code and suppressed retry. `welcome_consume_unit.py`
-  (4 cases) pins the semantics — 500/429 consume nothing, arm no guard, post nothing; a retry
+  pins the semantics — 500/429 consume nothing, arm no guard, post nothing; a retry
   then consumes exactly once; 403 already-member still consumes. `lobby_e2e` "[invite-fail]"
   proves it over the real HS: a federated joiner (the production norm) whose space invite the
   HS hard-fails with a real 500 M_UNKNOWN leaves `uses_remaining` untouched, no `joined_by`,
   `welcome_invite_failed` audited, no confirmation; the retry with a local joiner consumes
   exactly one use and delivers the invite + confirmation.
+- **A failed confirmation post must not enable a second consumption (PR #91 review finding #3)**:
+  the decrement used to be persisted before the confirmation and the `joined_by` guard, so a
+  send failure or crash after the decrement left the guard unset — a replayed join re-invited
+  and decremented again. The guard and the decrement are now persisted together, before the
+  confirmation post (guard first, so a crash between the two adjacent writes strands a use
+  unconsumed rather than consuming twice). `welcome_consume_unit.py` adds two cases: a 500 on
+  the send still consumes exactly once with the guard on disk (the send raises loudly); a
+  fault injected between the two saves leaves the use unconsumed and the guard armed.
 - **Full gate**: `run_e2e.log` — announce/self-heal/trust/liveness/consume units, smoke 39/39,
   vetting_e2e, lobby_e2e 33/33 (two-code E2EE round-trip + already-member redo + eviction
   remint + invite-fail/retry), admin_e2ee, retention, escrow, history bundles: **all gating
