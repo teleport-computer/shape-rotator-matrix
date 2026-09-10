@@ -286,6 +286,10 @@ def test_welcome_path():
     log("unknown code -> invalid_code",
         s == 403 and j.get("error") == "invalid_code",
         f"status={s} body={j}")
+    s, j = http("POST", f"{HS}/join/api", body={})
+    log("missing code -> invalid_code",
+        s == 403 and j.get("error") == "invalid_code",
+        f"status={s} body={j}")
     s, j = http("POST", f"{HS}/join/api", body={"code": WELCOME_DEAD})
     log("exhausted code -> code_exhausted",
         s == 403 and j.get("error") == "code_exhausted",

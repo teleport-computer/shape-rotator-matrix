@@ -1083,8 +1083,6 @@ async def join_handler(request):
     except Exception:
         return web.json_response({"error": "bad_json"}, status=400)
     code = (data.get("code") or "").strip()
-    if not code:
-        return web.json_response({"error": "missing_code"}, status=400)
 
     codes = _load(CODES_PATH)
     entry = codes.get(code)
