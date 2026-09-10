@@ -44,6 +44,9 @@ python3 tests/self_heal_unit.py
 echo "[runner] === admin_trust_unit.py ==="
 python3 tests/admin_trust_unit.py
 
+echo "[runner] === welcome_liveness_unit.py ==="
+python3 tests/welcome_liveness_unit.py
+
 # stdlib flow test (signup + knock-vetting + welcome rooms). Uses landing
 # nginx as HS so it hits both the matrix endpoints AND /signup/api +
 # /join/api in one shot.
@@ -74,13 +77,17 @@ DEV_HS="$HS" \
 # Welcome-room flow (issue #3): POST /join/api → public welcome room →
 # plain Join → space invite, with an E2EE round-trip in #bot-noise to prove
 # the new path doesn't wedge crypto for users who arrive via a welcome room
-# instead of the knock.
+# instead of the knock. DEV_LOBBY_TOKEN is the room bot's own token: the
+# stack runs the lobby flow on the MATRIX_TOKEN identity (no
+# ONBOARDING_BOT_TOKEN configured), so that is what the eviction case uses
+# to make the bot leave a room.
 echo "[runner] === lobby_e2e.py ==="
 DEV_HS="$HS" \
   DEV_REG_TOKEN="$CONDUWUIT_REGISTRATION_TOKEN" \
   DEV_WELCOME_CODE="$DEV_WELCOME_CODE" \
   DEV_WELCOME_CODE_2="$DEV_WELCOME_CODE_2" \
   DEV_WELCOME_CODE_3="$DEV_WELCOME_CODE_3" \
+  DEV_LOBBY_TOKEN="$MATRIX_TOKEN" \
   SPACE_ID="$SPACE_ID" \
   SPACE_CHILD_IDS="$SPACE_CHILD_IDS" \
   ADMIN_MXID="$ADMIN_MXID" \

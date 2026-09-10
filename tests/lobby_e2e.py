@@ -25,6 +25,12 @@ Env (all pre-set by run_in_runner.sh):
   DEV_WELCOME_CODE_3  a distinct code with >= 1 use for the redo pass
   SPACE_ID            unsuffixed space room id
   SPACE_CHILD_IDS     comma-separated child room IDs
+  DEV_LOBBY_TOKEN     the room bot's own access token. The e2e stack runs
+                      the lobby flow on the MATRIX_TOKEN identity (no
+                      ONBOARDING_BOT_TOKEN configured), so run_in_runner.sh
+                      passes MATRIX_TOKEN here; a dedicated-bot stack must
+                      pass that bot's token instead. Used only to make the
+                      bot leave a room — the eviction-liveness case.
 """
 import asyncio, json, os, secrets, sys, time, urllib.error, urllib.parse, urllib.request
 from pathlib import Path
@@ -41,6 +47,7 @@ REG_TOKEN         = os.environ["DEV_REG_TOKEN"]
 WELCOME_CODE      = os.environ["DEV_WELCOME_CODE"]
 WELCOME_CODE_2    = os.environ["DEV_WELCOME_CODE_2"]
 WELCOME_CODE_3    = os.environ["DEV_WELCOME_CODE_3"]
+LOBBY_TOKEN       = os.environ["DEV_LOBBY_TOKEN"]
 SPACE_ID          = os.environ["SPACE_ID"]
 SPACE_CHILD_IDS = [c.strip() for c in os.environ["SPACE_CHILD_IDS"].split(",") if c.strip()]
 ENC_ROOM = SPACE_CHILD_IDS[-1] if SPACE_CHILD_IDS else None
@@ -245,6 +252,40 @@ async def main():
             a_token, redo_room, "already in shape rotator", timeout=30)
         log("[alice-redo] got 'already in space' ack from bot",
             bool(ack and CONFIRM_ALREADY in ack), f"ack={ack!r}")
+
+    # PR #91 review finding: the liveness check used to read only
+    # m.room.tombstone, so a room the bot had LEFT — no tombstone — read
+    # as alive and /join/api kept returning the stale, unusable alias.
+    # Make the room bot leave a freshly minted room, then a POST must
+    # remint: same deterministic alias, NEW room behind it.
+    s, j = http("POST", "/join/api", body={"code": WELCOME_CODE_2})
+    log("[eviction] minted a room for a live code", s == 200,
+        f"status={s} body={j}")
+    if s == 200:
+        alias = j["room_alias"]
+        _s, dirr = http("GET", f"/_matrix/client/v3/directory/room/"
+                        f"{urllib.parse.quote(alias)}")
+        old_room = dirr.get("room_id")
+        # world_readable: a non-member can read state. Prove the room
+        # carries no tombstone, so the remint below can only be driven by
+        # the membership check.
+        s2, _ = http("GET", f"/_matrix/client/v3/rooms/"
+                     f"{urllib.parse.quote(old_room)}/state/m.room.tombstone",
+                     token=a_token)
+        log("[eviction] old room carries no tombstone", s2 == 404,
+            f"status={s2}")
+        s3, _ = http("POST", f"/_matrix/client/v3/rooms/"
+                     f"{urllib.parse.quote(old_room)}/leave",
+                     token=LOBBY_TOKEN, body={})
+        log("[eviction] room bot left the room (no tombstone)", s3 == 200,
+            f"status={s3}")
+        s4, _j = http("POST", "/join/api", body={"code": WELCOME_CODE_2})
+        _s, dirr2 = http("GET", f"/_matrix/client/v3/directory/room/"
+                         f"{urllib.parse.quote(alias)}")
+        log("[eviction] POST remints instead of returning the stale alias",
+            s4 == 200 and dirr2.get("room_id")
+            and dirr2["room_id"] != old_room,
+            f"status={s4} old={old_room} new={dirr2.get('room_id')}")
 
     failed = [name for name, ok in results if not ok]
     print(f"\n=== {len(results) - len(failed)}/{len(results)} pass ===")

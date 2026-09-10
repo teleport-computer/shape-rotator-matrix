@@ -36,9 +36,15 @@ The child-room joins via the restricted rule are asserted over the real API in
 - **Cleanup (kick + tombstone + mapping delete) and re-mint**: smoke polls until the joiner is
   kicked, then until the same code mints a fresh room (new room_id under the deterministic
   alias). CI runs the approver with short TTLs for this (`WELCOME_JOINED_TTL_SEC=25`).
-- **Full gate**: `run_e2e.log` — announce/self-heal/trust units, smoke 22/22, vetting_e2e,
-  lobby_e2e 20/20 (two-code E2EE round-trip + already-member redo), admin_e2ee, retention,
-  escrow, history bundles: **all gating tests passed**.
+- **Liveness after silent bot loss (PR #91 review finding)**: a mapped room the bot has LEFT —
+  no tombstone, so the tombstone read alone returned "alive" — must remint, not hand out the
+  stale, unusable alias. `welcome_liveness_unit.py` covers the response shapes (6 cases);
+  `lobby_e2e` "[eviction]" proves it over the real HS: the bot leaves a freshly minted room
+  (an outside user's world_readable state read confirms 404/no tombstone) and the next POST
+  returns the same alias now backed by a NEW room_id.
+- **Full gate**: `run_e2e.log` — announce/self-heal/trust/liveness units, smoke 39/39, vetting_e2e,
+  lobby_e2e 24/24 (two-code E2EE round-trip + already-member redo + eviction remint),
+  admin_e2ee, retention, escrow, history bundles: **all gating tests passed**.
 
 ## Honest limits
 - Element shows an "unsupported browser" banner (Firefox 136 on Xvfb); it does not affect the

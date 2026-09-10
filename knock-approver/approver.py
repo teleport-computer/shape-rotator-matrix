@@ -1031,20 +1031,28 @@ async def _create_welcome_room(alias_local):
 
 
 async def _welcome_room_alive(room_id):
-    """True if the mapped welcome room can still be joined: no m.room.tombstone
-    state and the onboarding bot is still in it. 404 = no tombstone = alive;
-    200 = tombstoned; 403 = bot evicted/left. Any other status raises."""
+    """True if the mapped welcome room can still serve a join: no
+    m.room.tombstone state and the onboarding bot still joined. The
+    tombstone read alone cannot prove membership — an evicted or departed
+    bot can still read world_readable state (404 "no tombstone" looked
+    alive) — so liveness also asks /joined_rooms, which answers for this
+    token. 200 = tombstoned; 403 = state unreadable (dead); any other
+    status raises."""
     async with aiohttp.ClientSession(headers=LOBBY_AUTH) as s:
         url = (f"{HS}/_matrix/client/v3/rooms/{urllib.parse.quote(room_id)}"
                f"/state/m.room.tombstone")
         async with s.get(url) as r:
-            if r.status == 404:
-                return True
             if r.status in (200, 403):
                 return False
-            raise RuntimeError(
-                f"tombstone check {room_id} -> {r.status}: "
-                f"{(await r.text())[:200]}")
+            if r.status != 404:
+                raise RuntimeError(
+                    f"tombstone check {room_id} -> {r.status}: "
+                    f"{(await r.text())[:200]}")
+        async with s.get(f"{HS}/_matrix/client/v3/joined_rooms") as r:
+            if r.status != 200:
+                raise RuntimeError(
+                    f"joined_rooms -> {r.status}: {(await r.text())[:200]}")
+            return room_id in (await r.json())["joined_rooms"]
 
 
 async def _delete_room_alias(full_alias):
