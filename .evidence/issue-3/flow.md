@@ -42,9 +42,19 @@ The child-room joins via the restricted rule are asserted over the real API in
   `lobby_e2e` "[eviction]" proves it over the real HS: the bot leaves a freshly minted room
   (an outside user's world_readable state read confirms 404/no tombstone) and the next POST
   returns the same alias now backed by a NEW room_id.
-- **Full gate**: `run_e2e.log` — announce/self-heal/trust/liveness units, smoke 39/39, vetting_e2e,
-  lobby_e2e 24/24 (two-code E2EE round-trip + already-member redo + eviction remint),
-  admin_e2ee, retention, escrow, history bundles: **all gating tests passed**.
+- **A hard-failing space invite must not burn the code (PR #91 review finding #2)**: the use
+  used to be decremented and `joined_by` armed *before* the invite was attempted, so any
+  non-200/403 status permanently consumed the code and suppressed retry. `welcome_consume_unit.py`
+  (4 cases) pins the semantics — 500/429 consume nothing, arm no guard, post nothing; a retry
+  then consumes exactly once; 403 already-member still consumes. `lobby_e2e` "[invite-fail]"
+  proves it over the real HS: a federated joiner (the production norm) whose space invite the
+  HS hard-fails with a real 500 M_UNKNOWN leaves `uses_remaining` untouched, no `joined_by`,
+  `welcome_invite_failed` audited, no confirmation; the retry with a local joiner consumes
+  exactly one use and delivers the invite + confirmation.
+- **Full gate**: `run_e2e.log` — announce/self-heal/trust/liveness/consume units, smoke 39/39,
+  vetting_e2e, lobby_e2e 33/33 (two-code E2EE round-trip + already-member redo + eviction
+  remint + invite-fail/retry), admin_e2ee, retention, escrow, history bundles: **all gating
+  tests passed**.
 
 ## Honest limits
 - Element shows an "unsupported browser" banner (Firefox 136 on Xvfb); it does not affect the

@@ -112,11 +112,13 @@ the CVM (SSH + docker exec) to add more.
    alias localpart is `welcome-<sha256(code+server_secret)[:8]>`, so it
    can't be guessed from the code.
 4. `knock-approver`'s welcome /sync loop (as `@onboarding-bot`) sees the
-   first `membership=join` in a mapped welcome room: it consumes one use of
-   the code (`uses_remaining` — the POST itself consumes nothing, so a
-   clicked-but-abandoned link never burns the code), invites the joiner to
-   the space, and posts "invite sent — accept it in Element and you're in."
-   in the room. Duplicate/replayed joins are no-ops.
+   first `membership=join` in a mapped welcome room: it invites the joiner
+   to the space, and only once that invite went out consumes one use of
+   the code (`uses_remaining` — neither the POST nor a failed space invite
+   consumes anything, so a clicked-but-abandoned link never burns the code
+   and a joiner whose invite failed can rejoin to retry) and posts "invite
+   sent — accept it in Element and you're in." in the room.
+   Duplicate/replayed joins are no-ops.
 5. Accepting the space invite joins them in; the `restricted` rule on
    child rooms lets them auto-join General / Announcements / Bot Noise.
 6. Cleanup: a joined welcome room is kicked + tombstoned + forgotten 30

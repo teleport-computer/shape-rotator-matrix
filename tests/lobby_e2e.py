@@ -16,6 +16,12 @@ What it asserts (issue #3):
   7. An already-space-member re-runs the flow with a fresh code: the invite
      403s as already-member and the bot still confirms (operator self-test
      path).
+  8. A hard-failing space invite (PR #91 review finding): a joiner whose
+     invite the HS 500s (a federated mxid — the production norm — which
+     this federation-disabled stack hard-fails) consumes nothing and arms
+     no exactly-once guard, and no confirmation is posted; the retry with
+     a joiner the HS accepts then consumes exactly one use and the invite
+     actually lands.
 
 Env (all pre-set by run_in_runner.sh):
   DEV_HS              homeserver URL (landing nginx)
@@ -286,6 +292,94 @@ async def main():
             s4 == 200 and dirr2.get("room_id")
             and dirr2["room_id"] != old_room,
             f"status={s4} old={old_room} new={dirr2.get('room_id')}")
+
+    # PR #91 review finding #2: the use used to be decremented and
+    # joined_by recorded BEFORE the space invite was attempted, so any
+    # non-200/403 invite status permanently burned the code and armed the
+    # exactly-once guard — the joiner never got the invite and no rejoin
+    # could retry. Drive process_welcome_join over the real HS: the failed
+    # invite is a joiner with a federated mxid (the production norm for
+    # this flow), which this federation-disabled stack's HS answers with a
+    # real 500 M_UNKNOWN — the same non-200/403 class as the transient
+    # invite failures the review names. The retry then uses a local joiner
+    # the HS accepts. Same import-in-process shape as retention_room_e2e.py;
+    # own state files so the running approver's /data state is untouched
+    # (its loop has no mapping for this room and ignores the join).
+    import tempfile as _tempfile
+    _tmp = _tempfile.mkdtemp()
+    _saved_env = dict(os.environ)
+    _s, _who = http("GET", "/_matrix/client/v3/account/whoami", token=LOBBY_TOKEN)
+    _lobby_mxid = _who["user_id"]
+    _server_name = _lobby_mxid.split(":", 1)[1]
+    os.environ.update({
+        "CODES_PATH": f"{_tmp}/codes.json",
+        "WELCOME_PATH": f"{_tmp}/welcome_rooms.json",
+        "WELCOME_SECRET_PATH": f"{_tmp}/welcome_secret",
+        "LOG_PATH": f"{_tmp}/log.jsonl",
+        "ENDORSEMENTS_PATH": f"{_tmp}/endorsements.jsonl",
+        "LOBBY_SYNC_STATE": f"{_tmp}/lobby_sync.txt",
+    })
+    sys.path.insert(0, str(REPO / "knock-approver"))
+    import approver as _approver
+    os.environ.clear()
+    os.environ.update(_saved_env)
+    _approver.SERVER_NAME = _server_name
+
+    _code = "e2e-invitefail-" + secrets.token_hex(4)
+    _approver._save(_approver.CODES_PATH, {_code: {"uses_remaining": 3}})
+    _alias_local = _approver._welcome_alias_local(_code)
+    _room = await _approver._create_welcome_room(_alias_local)
+    _full_alias = f"#{_alias_local}:{_server_name}"
+    _approver._save(_approver.WELCOME_PATH, {_code: {
+        "room_id": _room, "room_alias": _full_alias, "created_at": time.time()}})
+
+    _if_mxid, _if_token = register(
+        f"e2e_invitefail_{int(time.time())}_{secrets.token_hex(2)}",
+        secrets.token_urlsafe(32), f"EIF{secrets.token_hex(2)}")
+    s, _ = http("POST", f"/_matrix/client/v3/join/{urllib.parse.quote(_full_alias)}",
+                token=_if_token, body={})
+    log("[invite-fail] user joins the room", s == 200, f"status={s}")
+    if s == 200:
+        # Phase A: the joiner's space invite 500s — nothing may be consumed.
+        _meta = _approver._load(_approver.WELCOME_PATH)[_code]
+        await _approver.process_welcome_join(
+            _code, _meta, "@e2e-invitefail-remote:unreachable.invalid",
+            _lobby_mxid)
+
+        _uses = _approver._load(_approver.CODES_PATH)[_code]["uses_remaining"]
+        log("[invite-fail] 500'd invite consumed no use", _uses == 3,
+            f"uses_remaining={_uses}")
+        log("[invite-fail] exactly-once guard not armed",
+            "joined_by" not in _meta, f"meta={_meta}")
+        _rows = [json.loads(l)
+                 for l in _approver.LOG_PATH.read_text().splitlines()]
+        log("[invite-fail] failure audited",
+            any(r["type"] == "welcome_invite_failed" and r["status"] == 500
+                for r in _rows), f"rows={[r['type'] for r in _rows]}")
+        _no_ack = await _wait_for_message(
+            _if_token, _room, "you're in", timeout=5)
+        log("[invite-fail] no confirmation posted", _no_ack is None,
+            f"saw={_no_ack!r}")
+
+        # Phase B: the rejoin retry, a joiner the HS accepts — exactly one
+        # use goes, the invite + confirmation actually land.
+        _meta2 = _approver._load(_approver.WELCOME_PATH)[_code]
+        await _approver.process_welcome_join(
+            _code, _meta2, _if_mxid, _lobby_mxid)
+        _uses2 = _approver._load(_approver.CODES_PATH)[_code]["uses_remaining"]
+        log("[invite-fail] retry consumed exactly one use", _uses2 == 2,
+            f"uses_remaining={_uses2}")
+        log("[invite-fail] retry recorded the joiner",
+            _meta2.get("joined_by") == _if_mxid, f"meta={_meta2}")
+        _ack = await _wait_for_message(
+            _if_token, _room, "Element and you're in", timeout=15)
+        log("[invite-fail] retry posted the confirmation", bool(_ack),
+            f"ack={_ack!r}")
+        _invited = _wait_for_invite(
+            _if_token, lambda rid: rid.split(":")[0] == SPACE_ID.split(":")[0],
+            timeout=15)
+        log("[invite-fail] retry delivered the space invite", bool(_invited),
+            f"room={_invited}")
 
     failed = [name for name, ok in results if not ok]
     print(f"\n=== {len(results) - len(failed)}/{len(results)} pass ===")

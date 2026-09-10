@@ -11,8 +11,9 @@ Three responsibilities, all running in one process:
    `#welcome-<hash>:server` room (idempotent — a second call for a live
    code returns the same alias, and nothing is decremented yet). The user
    clicks through and joins with Element's plain Join button; the bot sees
-   the join in /sync, decrements the code's uses_remaining, invites the
-   joiner to the space and posts a confirmation. Rooms are tombstoned and
+   the join in /sync, invites the joiner to the space, and only then
+   decrements the code's uses_remaining and posts a confirmation — a failed
+   invite consumes nothing, so a rejoin retries. Rooms are tombstoned and
    forgotten on a timer (joined: 30m, unused: 48h).
 
 3. **Signup auth proxy** (HTTP /signup/api).
@@ -950,9 +951,10 @@ async def cleanup_stale_vetting(client, vetting_state):
 # /join?code=… link. Each code maps to ONE public room, minted idempotently:
 # the code is baked into the room's identity instead of being pasted into
 # Element's knock-reason box. The user's only UI step is a plain "Join"
-# button. The bot sees the join in /sync, consumes one use of the code,
-# invites the joiner to the space, and posts a confirmation. Rooms are
-# tombstoned and forgotten on a timer (issue #3).
+# button. The bot sees the join in /sync, invites the joiner to the space,
+# and only once that invite went out consumes one use of the code and
+# posts a confirmation — a failed invite consumes nothing, so a rejoin
+# retries. Rooms are tombstoned and forgotten on a timer (issue #3).
 
 def _welcome_secret():
     """Server-side secret mixed into welcome-room alias hashes so the alias
@@ -1193,32 +1195,37 @@ def iter_welcome_joins(rooms_data, welcome_state, self_mxid):
 
 async def process_welcome_join(code, meta, joiner, lobby_mxid):
     """Consume one code use and promote the first joiner of its welcome room:
-    decrement uses_remaining (persisted), invite the joiner to the space,
-    post the confirmation. joined_by/joined_at are set either way so a
-    replayed or duplicate join never decrements or invites again."""
-    codes = _load(CODES_PATH)
-    entry = codes.get(code) or {}
-    entry["uses_remaining"] = max(0, entry.get("uses_remaining", 0) - 1)
-    codes[code] = entry
-    _save(CODES_PATH, codes)
-
+    invite the joiner to the space, then — only once the invite went out
+    (200) or they were already in (403) — decrement uses_remaining
+    (persisted), post the confirmation and set joined_by/joined_at (the
+    exactly-once guard for replayed/duplicate joins). Any other invite
+    status consumes nothing and leaves the guard unset, so a later join
+    event (the joiner rejoining) retries instead of finding the code
+    burned with no invite."""
     endorser = _endorser_for_code(code, lobby_mxid)
     st, body = await _lobby_invite_to_space(
         joiner, endorser=endorser, code_or_manual=code)
     # /invite returning 403 means "already in the space" (the lobby bot has
     # PL>=50 by construction) — treat as success so an operator can self-test
     # the flow with their own already-membered account.
-    if st == 200 or st == 403:
-        ack = ("invite sent — accept it in Element and you're in."
-               if st == 200 else
-               "you're already in shape rotator — see you in the space.")
-        await _send_msg_raw(meta["room_id"], ack)
-    else:
+    if st != 200 and st != 403:
         audit({"type": "welcome_invite_failed", "user": joiner,
                "code": code, "room": meta["room_id"], "status": st,
                "body": body[:200]})
         print(f"[welcome] invite of {joiner} failed status={st}: "
               f"{body[:200]}", flush=True)
+        return
+
+    codes = _load(CODES_PATH)
+    entry = codes.get(code) or {}
+    entry["uses_remaining"] = max(0, entry.get("uses_remaining", 0) - 1)
+    codes[code] = entry
+    _save(CODES_PATH, codes)
+
+    ack = ("invite sent — accept it in Element and you're in."
+           if st == 200 else
+           "you're already in shape rotator — see you in the space.")
+    await _send_msg_raw(meta["room_id"], ack)
 
     meta["joined_by"] = joiner
     meta["joined_at"] = time.time()
