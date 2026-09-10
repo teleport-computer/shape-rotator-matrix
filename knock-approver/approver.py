@@ -1023,12 +1023,18 @@ async def _create_welcome_room(alias_local):
         # Belt-and-suspenders: explicitly /join the room. createRoom
         # auto-joins the creator, but if anything goes sideways with
         # room state federation, this re-asserts the bot's local
-        # member event so subsequent sends are authorized.
+        # member event so subsequent sends are authorized. A non-200
+        # means the bot is NOT joined: the room cannot serve the
+        # welcome flow (no confirmation post, no join observed), so
+        # raise rather than persist a dead mapping — the stranded
+        # alias is freed by the M_ROOM_IN_USE retry on the next
+        # request.
         join_url = f"{HS}/_matrix/client/v3/rooms/{urllib.parse.quote(room_id)}/join"
         async with s.post(join_url, json={}) as r:
             if r.status != 200:
-                print(f"[welcome] post-create join warn ({r.status}): "
-                      f"{(await r.text())[:200]}", flush=True)
+                raise RuntimeError(
+                    f"post-create join {room_id} -> {r.status}: "
+                    f"{(await r.text())[:200]}")
         return room_id
 
 
@@ -1124,7 +1130,7 @@ async def join_handler(request):
             room_id = await _create_welcome_room(alias_local)
     except Exception as e:
         audit({"type": "welcome_room_failed", "code": code, "err": str(e)[:300]})
-        print(f"[welcome] createRoom failed: {e}", flush=True)
+        print(f"[welcome] room mint failed: {e}", flush=True)
         return web.json_response({"error": "create_failed",
                                   "detail": str(e)[:200]}, status=500)
 

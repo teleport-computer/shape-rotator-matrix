@@ -50,6 +50,9 @@ python3 tests/welcome_liveness_unit.py
 echo "[runner] === welcome_consume_unit.py ==="
 python3 tests/welcome_consume_unit.py
 
+echo "[runner] === welcome_mint_unit.py ==="
+python3 tests/welcome_mint_unit.py
+
 # stdlib flow test (signup + knock-vetting + welcome rooms). Uses landing
 # nginx as HS so it hits both the matrix endpoints AND /signup/api +
 # /join/api in one shot.

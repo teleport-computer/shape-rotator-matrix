@@ -1,20 +1,20 @@
 [run_e2e] compose project: shape-rotator-e2e-3334118981
 [run_e2e] starting continuwuity
-time="2026-09-10T05:11:16-05:00" level=warning msg="The \"CONDUWUIT_BOOTSTRAP_TOKEN\" variable is not set. Defaulting to a blank string."
+time="2026-09-10T06:54:44-05:00" level=warning msg="The \"CONDUWUIT_BOOTSTRAP_TOKEN\" variable is not set. Defaulting to a blank string."
  Network shape-rotator-e2e-3334118981_default  Creating
  Network shape-rotator-e2e-3334118981_default  Created
  Volume "shape-rotator-e2e-3334118981_shared"  Creating
  Volume "shape-rotator-e2e-3334118981_shared"  Created
- Volume "shape-rotator-e2e-3334118981_continuwuity-test-data"  Creating
- Volume "shape-rotator-e2e-3334118981_continuwuity-test-data"  Created
  Volume "shape-rotator-e2e-3334118981_knock-test-data"  Creating
  Volume "shape-rotator-e2e-3334118981_knock-test-data"  Created
+ Volume "shape-rotator-e2e-3334118981_continuwuity-test-data"  Creating
+ Volume "shape-rotator-e2e-3334118981_continuwuity-test-data"  Created
  Container shape-rotator-e2e-3334118981-continuwuity-1  Creating
  Container shape-rotator-e2e-3334118981-continuwuity-1  Created
  Container shape-rotator-e2e-3334118981-continuwuity-1  Starting
  Container shape-rotator-e2e-3334118981-continuwuity-1  Started
 [run_e2e] waiting for bootstrap token to appear in continuwuity logs
-[run_e2e] bootstrap token: 7qiVPzXw308iYK70
+[run_e2e] bootstrap token: JdoDe5maQbjvLgfE
 [run_e2e] building all images
 #0 building with "rootless" instance using docker driver
 
@@ -22,53 +22,38 @@ time="2026-09-10T05:11:16-05:00" level=warning msg="The \"CONDUWUIT_BOOTSTRAP_TO
 #1 transferring dockerfile: 693B done
 #1 DONE 0.0s
 
-#2 [bootstrap internal] load metadata for docker.io/library/python:3.11-slim
+#2 [bootstrap internal] load .dockerignore
+#2 transferring context: 2B done
 #2 DONE 0.0s
 
-#3 [bootstrap internal] load .dockerignore
-#3 transferring context: 2B done
+#3 [bootstrap] exporting to image
+#3 exporting layers done
+#3 writing image sha256:86a9499c813f27d0f559786e7dac63af0b43e665457192dc1658df6c389aac84 done
+#3 naming to docker.io/library/shape-rotator-e2e-3334118981-bootstrap done
 #3 DONE 0.0s
 
-#4 [bootstrap 1/4] FROM docker.io/library/python:3.11-slim
+#4 [knock-approver internal] load build definition from Dockerfile
+#4 transferring dockerfile: 693B done
 #4 DONE 0.0s
 
-#5 [bootstrap 2/4] RUN apt-get update && apt-get install -y --no-install-recommends         libolm3 libolm-dev gcc curl ca-certificates  && rm -rf /var/lib/apt/lists/*
-#5 CACHED
+#5 [knock-approver internal] load metadata for docker.io/library/python:3.11-slim
+#5 DONE 0.0s
 
-#6 [bootstrap 3/4] RUN pip install --no-cache-dir         aiohttp         cryptography         'mautrix[e2be]'         asyncpg         aiosqlite         'matrix-nio[e2e]'         unpaddedbase64         base58         pyaes         python-olm
-#6 CACHED
+#6 [knock-approver internal] load .dockerignore
+#6 transferring context: 2B done
+#6 DONE 0.0s
 
-#7 [bootstrap 4/4] WORKDIR /repo
-#7 CACHED
+#7 [knock-approver 1/4] FROM docker.io/library/python:3.11-slim
+#7 DONE 0.0s
 
-#8 [bootstrap] exporting to image
-#8 exporting layers done
-#8 writing image sha256:86a9499c813f27d0f559786e7dac63af0b43e665457192dc1658df6c389aac84 done
-#8 naming to docker.io/library/shape-rotator-e2e-3334118981-bootstrap done
-#8 DONE 0.0s
+#8 [knock-approver 3/4] RUN pip install --no-cache-dir         aiohttp         cryptography         'mautrix[e2be]'         asyncpg         aiosqlite         'matrix-nio[e2e]'         unpaddedbase64         base58         pyaes         python-olm
+#8 CACHED
 
-#9 [knock-approver internal] load build definition from Dockerfile
-#9 transferring dockerfile: 693B done
-#9 DONE 0.0s
+#9 [knock-approver 2/4] RUN apt-get update && apt-get install -y --no-install-recommends         libolm3 libolm-dev gcc curl ca-certificates  && rm -rf /var/lib/apt/lists/*
+#9 CACHED
 
-#2 [knock-approver internal] load metadata for docker.io/library/python:3.11-slim
-#2 DONE 0.0s
-
-#10 [knock-approver internal] load .dockerignore
-#10 transferring context: 2B done
-#10 DONE 0.0s
-
-#4 [knock-approver 1/4] FROM docker.io/library/python:3.11-slim
-#4 DONE 0.0s
-
-#6 [knock-approver 3/4] RUN pip install --no-cache-dir         aiohttp         cryptography         'mautrix[e2be]'         asyncpg         aiosqlite         'matrix-nio[e2e]'         unpaddedbase64         base58         pyaes         python-olm
-#6 CACHED
-
-#5 [knock-approver 2/4] RUN apt-get update && apt-get install -y --no-install-recommends         libolm3 libolm-dev gcc curl ca-certificates  && rm -rf /var/lib/apt/lists/*
-#5 CACHED
-
-#7 [knock-approver 4/4] WORKDIR /repo
-#7 CACHED
+#10 [knock-approver 4/4] WORKDIR /repo
+#10 CACHED
 
 #11 [knock-approver] exporting to image
 #11 exporting layers done
@@ -80,24 +65,24 @@ time="2026-09-10T05:11:16-05:00" level=warning msg="The \"CONDUWUIT_BOOTSTRAP_TO
 #12 transferring dockerfile: 693B done
 #12 DONE 0.0s
 
-#2 [test-runner internal] load metadata for docker.io/library/python:3.11-slim
-#2 DONE 0.0s
+#5 [test-runner internal] load metadata for docker.io/library/python:3.11-slim
+#5 DONE 0.0s
 
 #13 [test-runner internal] load .dockerignore
 #13 transferring context: 2B done
 #13 DONE 0.0s
 
-#4 [test-runner 1/4] FROM docker.io/library/python:3.11-slim
-#4 DONE 0.0s
+#7 [test-runner 1/4] FROM docker.io/library/python:3.11-slim
+#7 DONE 0.0s
 
-#5 [test-runner 2/4] RUN apt-get update && apt-get install -y --no-install-recommends         libolm3 libolm-dev gcc curl ca-certificates  && rm -rf /var/lib/apt/lists/*
-#5 CACHED
+#8 [test-runner 3/4] RUN pip install --no-cache-dir         aiohttp         cryptography         'mautrix[e2be]'         asyncpg         aiosqlite         'matrix-nio[e2e]'         unpaddedbase64         base58         pyaes         python-olm
+#8 CACHED
 
-#6 [test-runner 3/4] RUN pip install --no-cache-dir         aiohttp         cryptography         'mautrix[e2be]'         asyncpg         aiosqlite         'matrix-nio[e2e]'         unpaddedbase64         base58         pyaes         python-olm
-#6 CACHED
+#9 [test-runner 2/4] RUN apt-get update && apt-get install -y --no-install-recommends         libolm3 libolm-dev gcc curl ca-certificates  && rm -rf /var/lib/apt/lists/*
+#9 CACHED
 
-#7 [test-runner 4/4] WORKDIR /repo
-#7 CACHED
+#10 [test-runner 4/4] WORKDIR /repo
+#10 CACHED
 
 #14 [test-runner] exporting to image
 #14 exporting layers done
@@ -133,8 +118,8 @@ time="2026-09-10T05:11:16-05:00" level=warning msg="The \"CONDUWUIT_BOOTSTRAP_TO
 [runner] waiting for approver health
 [runner] env summary:
   HS=http://landing:80
-  SPACE_ID=!UCiSyAmOjVLMNcVAvOHhIDEuxfLa3SpLQYjXe59lmiM
-  SPACE_CHILD_IDS=!etxf-koOpclHz_DZ4Vdhx9S0FbgcFvFXcx3gkI67ghw,!MsNV7pHKzPpl7eUeLZ35ft-Z4dhvwTMOD2vH5DjIQgI,!ZcuR4FnA6ftG8Ucko1M9gCJkC1vKnastHXj4l3Powk4
+  SPACE_ID=!3kGE6Uwx3PY11iiqcy_uoM_Qv1PZqnkkRFjb6CxqW6Q
+  SPACE_CHILD_IDS=!j90rVWx-ys32gwXQ0MoJRH1m0v3ppA0ix6QmKLrJX2Q,!NVr8FY-DDJ_iCnJ03OjSqj2n_Jtm85WQQccD7vW2_b0,!01UXEJ4vVRN-hNWGrV1a5pVtgzpxtUKBDaAmwShuoG8
   ADMIN_MXID=@admin:localhost:46167
 [runner] === announce_unit.py ===
 ok: no_flood_on_repeated_cycles
@@ -145,7 +130,7 @@ all tests passed
 [runner] === self_heal_unit.py ===
 ok: env_token_works
 [u] env token /whoami failed; trying cached token
-[u] using cached token from /tmp/selfheal-cached-zbmcpv8s/token
+[u] using cached token from /tmp/selfheal-cached-rim7_qng/token
 ok: env_stale_cached_works
 [u] env token /whoami failed; trying cached token
 [u] cached token also stale; falling back to password
@@ -160,7 +145,7 @@ ok: first_run_no_cache_login_fresh
 [u] self-minted fresh token; device_id=NEW_DEV mxid=@u:t (cached_device='STALE_DEV'; reused=False)
 ok: login_with_cached_device_fails_retries_fresh
 [u] env token /whoami failed; trying cached token
-[u] no usable password at /tmp/selfheal-nopass-b8qupcvh/password; cannot self-mint
+[u] no usable password at /tmp/selfheal-nopass-c0p4h6o6/password; cannot self-mint
 ok: no_password_no_env_returns_none
 ok: device_changed_helper
 all tests passed
@@ -190,11 +175,20 @@ ok: test_already_member_403_consumes
 ok: test_confirmation_failure_consumes_once
 ok: test_crash_between_saves_leaves_use_unconsumed
 all tests passed
+[runner] === welcome_mint_unit.py ===
+ok: test_create_room_raises_when_join_fails
+ok: test_create_room_raises_when_createroom_fails
+ok: test_happy_path_returns_room_id
+[welcome] room mint failed: post-create join !w:t -> 500: {"errcode":"M_UNKNOWN"}
+ok: test_handler_failed_join_persists_nothing
+[welcome] #welcome-372b86b2:t (dev) -> !w:t
+ok: test_handler_happy_path_mints
+all tests passed
 [runner] === smoke.py ===
 smoke test against http://landing:80
 
-[signup] username=smoke_signup_1789035116_69eb
-  [PASS] signup returns 200  (status=200 body={'user_id': '@smoke_signup_1789035116_69eb:localhost:46167', 'access_token': 'BT8FhZvg1bI03EP44cW0nNsT', 'device_id': 'kJDh6g3j0J', 'homeserver': 'http://landing:80', 'space_id': '!UCiSyAmOjVLMNcVAvOHhIDEuxfLa3SpLQYjXe59lmiM', 'steps': {'register': True, 'space_invited': True, 'displayname_set': True, 'space_joined': True, 'children_joined': ['!etxf-koOpclHz_DZ4Vdhx9S0FbgcFvFXcx3gkI67ghw', '!MsNV7pHKzPpl7eUeLZ35ft-Z4dhvwTMOD2vH5DjIQgI', '!ZcuR4FnA6ftG8Ucko1M9gCJkC1vKnastHXj4l3Powk4'], 'inviter_dm': True}, 'dm_room': '!MEfBjKMzolGaZiB3TVuV7bgAkLtHt67YzWb-J5Jlsig', 'intro_text': 'automated smoke test — please ignore'})
+[signup] username=smoke_signup_1789041361_6425
+  [PASS] signup returns 200  (status=200 body={'user_id': '@smoke_signup_1789041361_6425:localhost:46167', 'access_token': 'LtRgOQYSK8u43ooXEuAvP8HN', 'device_id': 'QRza2FT1xd', 'homeserver': 'http://landing:80', 'space_id': '!3kGE6Uwx3PY11iiqcy_uoM_Qv1PZqnkkRFjb6CxqW6Q', 'steps': {'register': True, 'space_invited': True, 'displayname_set': True, 'space_joined': True, 'children_joined': ['!j90rVWx-ys32gwXQ0MoJRH1m0v3ppA0ix6QmKLrJX2Q', '!NVr8FY-DDJ_iCnJ03OjSqj2n_Jtm85WQQccD7vW2_b0', '!01UXEJ4vVRN-hNWGrV1a5pVtgzpxtUKBDaAmwShuoG8'], 'inviter_dm': True}, 'dm_room': '!N9Z0ikqPI9OoBXpxei6_J45dVbbHaULZCejFGESm4XY', 'intro_text': 'automated smoke test — please ignore'})
   [PASS] register step
   [PASS] space_invited step
   [PASS] space_joined step
@@ -205,10 +199,10 @@ smoke test against http://landing:80
   [PASS] user joined all 3 children
   [PASS] user sees DM room
 
-[knock] test account: smoke_knock_1789035117_a1e6
+[knock] test account: smoke_knock_1789041362_fd2b
   [PASS] knock-test account registered  (status=200)
   [PASS] knock posted  (status=200)
-  [PASS] vetting room invite within 15s  (room=!mKnrqls3CcXPcfZgzjPLF78Pq7qxyVNZ16xiPNe9jyk)
+  [PASS] vetting room invite within 15s  (room=!BIuMiTugpImiIikolLfJOWtYFwXb86boWOZiIlFu-GQ)
   [PASS] joined vetting room  (status=200)
   [PASS] challenge keyword visible  (keyword='wikipedia')
   [PASS] haiku sent  (status=200)
@@ -219,16 +213,16 @@ smoke test against http://landing:80
   [PASS] unknown code -> invalid_code  (status=403 body={'error': 'invalid_code'})
   [PASS] missing code -> invalid_code  (status=403 body={'error': 'invalid_code'})
   [PASS] exhausted code -> code_exhausted  (status=403 body={'error': 'code_exhausted'})
-  [PASS] single-use code mints #welcome- room  (status=200 body={'room_alias': '#welcome-2165d244:localhost:46167'})
-  [PASS] second POST returns the same alias (idempotent)  (status=200 body={'room_alias': '#welcome-2165d244:localhost:46167'})
+  [PASS] single-use code mints #welcome- room  (status=200 body={'room_alias': '#welcome-53c2eea3:localhost:46167'})
+  [PASS] second POST returns the same alias (idempotent)  (status=200 body={'room_alias': '#welcome-53c2eea3:localhost:46167'})
   [PASS] [smoke_welcome] account registered  (status=200)
-  [PASS] alias resolves to a room  (dir={'room_id': '!nWFjmfxnQiwtH78isq:localhost:46167', 'servers': ['localhost:46167']})
-  [PASS] user joins welcome room via alias  (status=200 alias=#welcome-2165d244:localhost:46167)
+  [PASS] alias resolves to a room  (dir={'room_id': '!q4LF5wNUByPf5Kidhi:localhost:46167', 'servers': ['localhost:46167']})
+  [PASS] user joins welcome room via alias  (status=200 alias=#welcome-53c2eea3:localhost:46167)
   [PASS] space invite after welcome-room join (within 15s)
   [PASS] confirmation message posted in welcome room  (bodies=["welcome — sit tight, you're about to be invited to the main space. join this room to get the invite.", "invite sent — accept it in Element and you're in."])
   [PASS] accepted space invite  (status=200)
   [PASS] joined all 3 children via restricted rule
-  [PASS] multi-use code mints #welcome- room  (status=200 body={'room_alias': '#welcome-4384aaec:localhost:46167'})
+  [PASS] multi-use code mints #welcome- room  (status=200 body={'room_alias': '#welcome-2e5ad3a0:localhost:46167'})
   [PASS] [smoke_wel_a] account registered  (status=200)
   [PASS] [smoke_wel_b] account registered  (status=200)
   [PASS] [outsider-test] first user joins second room  (status=200)
@@ -237,452 +231,449 @@ smoke test against http://landing:80
   [PASS] [outsider-test] duplicate joiner gets no invite at all  (invites=[])
   [PASS] single-use code exhausted after the join (consumed exactly once)  (status=403 body={'error': 'code_exhausted'})
   [PASS] reaped: joiner kicked out of the welcome room
-  [PASS] re-mint after reap: fresh room for a code with uses left  (old_room=None new_room=!MZfStcfcZ10v4lfVcl:localhost:46167 last_status=200)
+  [PASS] re-mint after reap: fresh room for a code with uses left  (old_room=None new_room=!k0nnn6GmKmLSkLstjd:localhost:46167 last_status=200)
 
 [cleanup] kicking 6 test user(s)
 
 === 40/40 passed ===
 [runner] === vetting_e2e.py ===
-[alice] registered @e2e_alice_1789035170_f085:localhost:46167 device=E2EALICEa42e
+[alice] registered @e2e_alice_1789041414_f39f:localhost:46167 device=E2EALICE6bba
   [PASS] [alice] knock posted  (status=200)
-  [PASS] [alice] vetting room invite arrived  (room=!COmqOauJL7Qlvy0oAltw9Ok3xVEkyJnHHsxvN5o_1hA)
+  [PASS] [alice] vetting room invite arrived  (room=!K-gxkenWUGh9879PYkoXZcT7oTk28ZfCjxisvv1YDy0)
   [PASS] [alice] joined vetting room  (status=200)
   [PASS] [alice] captcha keyword visible  (keyword='wikipedia')
   [PASS] [alice] haiku sent  (status=200)
   [PASS] [alice] space invite after vetting
-  [PASS] [alice] welcome signup-code url posted in ack  (url=http://landing:80/signup?code=PjuVl1Oh)
+  [PASS] [alice] welcome signup-code url posted in ack  (url=http://landing:80/signup?code=b3FchLR)
   [PASS] [alice] onboarding doc url posted in ack
   [PASS] [alice] accepted space invite  (status=200)
-[bob] registered @e2e_bob_1789035179_fce3:localhost:46167 device=E2EBOB0f48
+[bob] registered @e2e_bob_1789041424_8434:localhost:46167 device=E2EBOB7cc8
   [PASS] [bob] knock posted  (status=200)
-  [PASS] [bob] vetting room invite arrived  (room=!myIiJFth8J62FFEop1TkexcARS1ns5rj6EuxdQM19-U)
+  [PASS] [bob] vetting room invite arrived  (room=!5l3qgm_coByLBey59oIKGAJZui7a9gGimuA1TTXGaiM)
   [PASS] [bob] joined vetting room  (status=200)
   [PASS] [bob] captcha keyword visible  (keyword='wikipedia')
   [PASS] [bob] haiku sent  (status=200)
   [PASS] [bob] space invite after vetting
-  [PASS] [bob] welcome signup-code url posted in ack  (url=http://landing:80/signup?code=ecdKzs2)
+  [PASS] [bob] welcome signup-code url posted in ack  (url=http://landing:80/signup?code=eH9qAHCQ)
   [PASS] [bob] onboarding doc url posted in ack
   [PASS] [bob] accepted space invite  (status=200)
-Failed to decrypt $9ka7cohh1dkfQD0jPRej8LECGKHAraerLDNH5lSywjE: Failed to decrypt megolm event: no session with given ID jPUADNQAHEJVuO6jFrJuYlBYCoeQ55XxAGA1pYlzjmQ found
-Failed to decrypt $47udiYwWgeOZiLvKUZDPSAwRDXdbVFd41gL3IhXc4WQ: Failed to decrypt megolm event: no session with given ID cWD1fKp5KqRw8xcw7x63ASZLLj/l96uN10TL0JrjkkM found
-Failed to decrypt $-vTfDgKDaiWworJAYXtyGchawkLejQXo-MCUIHGKQvM: Failed to decrypt megolm event: no session with given ID d/Uu7tz1/NipS6SXPKAf6G73fFolC2JZ5WMR1jXuWAM found
-Failed to decrypt $cbApGF40ivtABzVhHsg1yTgA6d5L6YPQgLaIU67OxPM: Failed to decrypt megolm event: no session with given ID OtYQkTwE18Q+3K99HejSKRlERa6SNWo8LXPY0FkffII found
-Failed to decrypt $bDrvpscq5W1OQF_GW0JGIBXdcO2couQfga4X1gRX8EQ: Failed to decrypt megolm event: no session with given ID PXD8qoCDJN0kB5MdTTFNNGXlN89ymgwqynwRGgLxj5A found
-Failed to decrypt $9ka7cohh1dkfQD0jPRej8LECGKHAraerLDNH5lSywjE: Failed to decrypt megolm event: no session with given ID jPUADNQAHEJVuO6jFrJuYlBYCoeQ55XxAGA1pYlzjmQ found
-Failed to decrypt $47udiYwWgeOZiLvKUZDPSAwRDXdbVFd41gL3IhXc4WQ: Failed to decrypt megolm event: no session with given ID cWD1fKp5KqRw8xcw7x63ASZLLj/l96uN10TL0JrjkkM found
-Failed to decrypt $-vTfDgKDaiWworJAYXtyGchawkLejQXo-MCUIHGKQvM: Failed to decrypt megolm event: no session with given ID d/Uu7tz1/NipS6SXPKAf6G73fFolC2JZ5WMR1jXuWAM found
-Failed to decrypt $9ka7cohh1dkfQD0jPRej8LECGKHAraerLDNH5lSywjE: Failed to decrypt megolm event: no session with given ID jPUADNQAHEJVuO6jFrJuYlBYCoeQ55XxAGA1pYlzjmQ found
-Failed to decrypt $cbApGF40ivtABzVhHsg1yTgA6d5L6YPQgLaIU67OxPM: Failed to decrypt megolm event: no session with given ID OtYQkTwE18Q+3K99HejSKRlERa6SNWo8LXPY0FkffII found
-Failed to decrypt $bDrvpscq5W1OQF_GW0JGIBXdcO2couQfga4X1gRX8EQ: Failed to decrypt megolm event: no session with given ID PXD8qoCDJN0kB5MdTTFNNGXlN89ymgwqynwRGgLxj5A found
-Failed to decrypt $47udiYwWgeOZiLvKUZDPSAwRDXdbVFd41gL3IhXc4WQ: Failed to decrypt megolm event: no session with given ID cWD1fKp5KqRw8xcw7x63ASZLLj/l96uN10TL0JrjkkM found
-Failed to decrypt $-vTfDgKDaiWworJAYXtyGchawkLejQXo-MCUIHGKQvM: Failed to decrypt megolm event: no session with given ID d/Uu7tz1/NipS6SXPKAf6G73fFolC2JZ5WMR1jXuWAM found
-Failed to decrypt $9ka7cohh1dkfQD0jPRej8LECGKHAraerLDNH5lSywjE: Failed to decrypt megolm event: no session with given ID jPUADNQAHEJVuO6jFrJuYlBYCoeQ55XxAGA1pYlzjmQ found
-Failed to decrypt $cbApGF40ivtABzVhHsg1yTgA6d5L6YPQgLaIU67OxPM: Failed to decrypt megolm event: no session with given ID OtYQkTwE18Q+3K99HejSKRlERa6SNWo8LXPY0FkffII found
-Failed to decrypt $bDrvpscq5W1OQF_GW0JGIBXdcO2couQfga4X1gRX8EQ: Failed to decrypt megolm event: no session with given ID PXD8qoCDJN0kB5MdTTFNNGXlN89ymgwqynwRGgLxj5A found
+Failed to decrypt $dj_UUarcBuClTP6Ab0E0F8CdLRQ9a02f-OUVdHwbYgY: Failed to decrypt megolm event: no session with given ID tIQUy/z9PsWc7KZAIXz5sp4DwyXqsBLYQyFl4XI+3A8 found
+Failed to decrypt $lYU-0MfLdcYRMc3zeStjMZUrFWWfJduJ63Qg4nPdM7M: Failed to decrypt megolm event: no session with given ID zUhHtlnUeX1K3z+B9Qis9bwyYX9Fe91+H6Mls/YB3Kk found
+Failed to decrypt $fdb8Fc6CbyNV-jT8qdTkqqaNKJ7Szh1NcBS_-RV9fY0: Failed to decrypt megolm event: no session with given ID i18pD2yuoUq/KuqBr6sSB766dcfoF5IEQaUAxHh/LEU found
+Failed to decrypt $FwDA2Rw63d8p3e19jk-Yoxn44mRopgvOEhjMSl5uhMs: Failed to decrypt megolm event: no session with given ID zs96LVLJLWQkk6skIpFLmP+uFVBusN5bCtqPf2aXZAs found
+Failed to decrypt $KE071QhizjV80d9Nu-xqE7f1C27ZwBlh1rxgvuuD3Ug: Failed to decrypt megolm event: no session with given ID NjBuoH3uib+sc2BiSO4AUkIG+ize9yBGBz395Iv8gEQ found
+Failed to decrypt $dj_UUarcBuClTP6Ab0E0F8CdLRQ9a02f-OUVdHwbYgY: Failed to decrypt megolm event: no session with given ID tIQUy/z9PsWc7KZAIXz5sp4DwyXqsBLYQyFl4XI+3A8 found
+Failed to decrypt $lYU-0MfLdcYRMc3zeStjMZUrFWWfJduJ63Qg4nPdM7M: Failed to decrypt megolm event: no session with given ID zUhHtlnUeX1K3z+B9Qis9bwyYX9Fe91+H6Mls/YB3Kk found
+Failed to decrypt $fdb8Fc6CbyNV-jT8qdTkqqaNKJ7Szh1NcBS_-RV9fY0: Failed to decrypt megolm event: no session with given ID i18pD2yuoUq/KuqBr6sSB766dcfoF5IEQaUAxHh/LEU found
+Failed to decrypt $FwDA2Rw63d8p3e19jk-Yoxn44mRopgvOEhjMSl5uhMs: Failed to decrypt megolm event: no session with given ID zs96LVLJLWQkk6skIpFLmP+uFVBusN5bCtqPf2aXZAs found
+Failed to decrypt $dj_UUarcBuClTP6Ab0E0F8CdLRQ9a02f-OUVdHwbYgY: Failed to decrypt megolm event: no session with given ID tIQUy/z9PsWc7KZAIXz5sp4DwyXqsBLYQyFl4XI+3A8 found
+Failed to decrypt $KE071QhizjV80d9Nu-xqE7f1C27ZwBlh1rxgvuuD3Ug: Failed to decrypt megolm event: no session with given ID NjBuoH3uib+sc2BiSO4AUkIG+ize9yBGBz395Iv8gEQ found
+Failed to decrypt $dj_UUarcBuClTP6Ab0E0F8CdLRQ9a02f-OUVdHwbYgY: Failed to decrypt megolm event: no session with given ID tIQUy/z9PsWc7KZAIXz5sp4DwyXqsBLYQyFl4XI+3A8 found
+Failed to decrypt $lYU-0MfLdcYRMc3zeStjMZUrFWWfJduJ63Qg4nPdM7M: Failed to decrypt megolm event: no session with given ID zUhHtlnUeX1K3z+B9Qis9bwyYX9Fe91+H6Mls/YB3Kk found
+Failed to decrypt $fdb8Fc6CbyNV-jT8qdTkqqaNKJ7Szh1NcBS_-RV9fY0: Failed to decrypt megolm event: no session with given ID i18pD2yuoUq/KuqBr6sSB766dcfoF5IEQaUAxHh/LEU found
+Failed to decrypt $FwDA2Rw63d8p3e19jk-Yoxn44mRopgvOEhjMSl5uhMs: Failed to decrypt megolm event: no session with given ID zs96LVLJLWQkk6skIpFLmP+uFVBusN5bCtqPf2aXZAs found
+Failed to decrypt $KE071QhizjV80d9Nu-xqE7f1C27ZwBlh1rxgvuuD3Ug: Failed to decrypt megolm event: no session with given ID NjBuoH3uib+sc2BiSO4AUkIG+ize9yBGBz395Iv8gEQ found
+Failed to decrypt $dj_UUarcBuClTP6Ab0E0F8CdLRQ9a02f-OUVdHwbYgY: Failed to decrypt megolm event: no session with given ID tIQUy/z9PsWc7KZAIXz5sp4DwyXqsBLYQyFl4XI+3A8 found
+Failed to decrypt $lYU-0MfLdcYRMc3zeStjMZUrFWWfJduJ63Qg4nPdM7M: Failed to decrypt megolm event: no session with given ID zUhHtlnUeX1K3z+B9Qis9bwyYX9Fe91+H6Mls/YB3Kk found
+Failed to decrypt $fdb8Fc6CbyNV-jT8qdTkqqaNKJ7Szh1NcBS_-RV9fY0: Failed to decrypt megolm event: no session with given ID i18pD2yuoUq/KuqBr6sSB766dcfoF5IEQaUAxHh/LEU found
+Failed to decrypt $FwDA2Rw63d8p3e19jk-Yoxn44mRopgvOEhjMSl5uhMs: Failed to decrypt megolm event: no session with given ID zs96LVLJLWQkk6skIpFLmP+uFVBusN5bCtqPf2aXZAs found
   [PASS] E2EE child room reports encrypted (alice side)
   [PASS] E2EE child room reports encrypted (bob side)
-Failed to decrypt $47udiYwWgeOZiLvKUZDPSAwRDXdbVFd41gL3IhXc4WQ: Failed to decrypt megolm event: no session with given ID cWD1fKp5KqRw8xcw7x63ASZLLj/l96uN10TL0JrjkkM found
-Failed to decrypt $9ka7cohh1dkfQD0jPRej8LECGKHAraerLDNH5lSywjE: Failed to decrypt megolm event: no session with given ID jPUADNQAHEJVuO6jFrJuYlBYCoeQ55XxAGA1pYlzjmQ found
-Failed to decrypt $-vTfDgKDaiWworJAYXtyGchawkLejQXo-MCUIHGKQvM: Failed to decrypt megolm event: no session with given ID d/Uu7tz1/NipS6SXPKAf6G73fFolC2JZ5WMR1jXuWAM found
-Failed to decrypt $cbApGF40ivtABzVhHsg1yTgA6d5L6YPQgLaIU67OxPM: Failed to decrypt megolm event: no session with given ID OtYQkTwE18Q+3K99HejSKRlERa6SNWo8LXPY0FkffII found
-Failed to decrypt $bDrvpscq5W1OQF_GW0JGIBXdcO2couQfga4X1gRX8EQ: Failed to decrypt megolm event: no session with given ID PXD8qoCDJN0kB5MdTTFNNGXlN89ymgwqynwRGgLxj5A found
-Device @admin:localhost:46167/FWnJon5AOy isn't cross-signed
-Failed to decrypt $9ka7cohh1dkfQD0jPRej8LECGKHAraerLDNH5lSywjE: Failed to decrypt megolm event: no session with given ID jPUADNQAHEJVuO6jFrJuYlBYCoeQ55XxAGA1pYlzjmQ found
-Failed to decrypt $47udiYwWgeOZiLvKUZDPSAwRDXdbVFd41gL3IhXc4WQ: Failed to decrypt megolm event: no session with given ID cWD1fKp5KqRw8xcw7x63ASZLLj/l96uN10TL0JrjkkM found
-Failed to decrypt $-vTfDgKDaiWworJAYXtyGchawkLejQXo-MCUIHGKQvM: Failed to decrypt megolm event: no session with given ID d/Uu7tz1/NipS6SXPKAf6G73fFolC2JZ5WMR1jXuWAM found
-Failed to decrypt $cbApGF40ivtABzVhHsg1yTgA6d5L6YPQgLaIU67OxPM: Failed to decrypt megolm event: no session with given ID OtYQkTwE18Q+3K99HejSKRlERa6SNWo8LXPY0FkffII found
-Failed to decrypt $bDrvpscq5W1OQF_GW0JGIBXdcO2couQfga4X1gRX8EQ: Failed to decrypt megolm event: no session with given ID PXD8qoCDJN0kB5MdTTFNNGXlN89ymgwqynwRGgLxj5A found
-Device @e2e_alice_1789035170_f085:localhost:46167/E2EALICEa42e isn't cross-signed
-Device @e2e_bob_1789035179_fce3:localhost:46167/E2EBOB0f48 isn't cross-signed
-Failed to decrypt $47udiYwWgeOZiLvKUZDPSAwRDXdbVFd41gL3IhXc4WQ: Failed to decrypt megolm event: no session with given ID cWD1fKp5KqRw8xcw7x63ASZLLj/l96uN10TL0JrjkkM found
-Failed to decrypt $-vTfDgKDaiWworJAYXtyGchawkLejQXo-MCUIHGKQvM: Failed to decrypt megolm event: no session with given ID d/Uu7tz1/NipS6SXPKAf6G73fFolC2JZ5WMR1jXuWAM found
-Failed to decrypt $cbApGF40ivtABzVhHsg1yTgA6d5L6YPQgLaIU67OxPM: Failed to decrypt megolm event: no session with given ID OtYQkTwE18Q+3K99HejSKRlERa6SNWo8LXPY0FkffII found
-Failed to decrypt $bDrvpscq5W1OQF_GW0JGIBXdcO2couQfga4X1gRX8EQ: Failed to decrypt megolm event: no session with given ID PXD8qoCDJN0kB5MdTTFNNGXlN89ymgwqynwRGgLxj5A found
-Device @admin:localhost:46167/FWnJon5AOy isn't cross-signed
+Failed to decrypt $KE071QhizjV80d9Nu-xqE7f1C27ZwBlh1rxgvuuD3Ug: Failed to decrypt megolm event: no session with given ID NjBuoH3uib+sc2BiSO4AUkIG+ize9yBGBz395Iv8gEQ found
+Failed to decrypt $lYU-0MfLdcYRMc3zeStjMZUrFWWfJduJ63Qg4nPdM7M: Failed to decrypt megolm event: no session with given ID zUhHtlnUeX1K3z+B9Qis9bwyYX9Fe91+H6Mls/YB3Kk found
+Failed to decrypt $fdb8Fc6CbyNV-jT8qdTkqqaNKJ7Szh1NcBS_-RV9fY0: Failed to decrypt megolm event: no session with given ID i18pD2yuoUq/KuqBr6sSB766dcfoF5IEQaUAxHh/LEU found
+Failed to decrypt $FwDA2Rw63d8p3e19jk-Yoxn44mRopgvOEhjMSl5uhMs: Failed to decrypt megolm event: no session with given ID zs96LVLJLWQkk6skIpFLmP+uFVBusN5bCtqPf2aXZAs found
+Failed to decrypt $KE071QhizjV80d9Nu-xqE7f1C27ZwBlh1rxgvuuD3Ug: Failed to decrypt megolm event: no session with given ID NjBuoH3uib+sc2BiSO4AUkIG+ize9yBGBz395Iv8gEQ found
+Failed to decrypt $dj_UUarcBuClTP6Ab0E0F8CdLRQ9a02f-OUVdHwbYgY: Failed to decrypt megolm event: no session with given ID tIQUy/z9PsWc7KZAIXz5sp4DwyXqsBLYQyFl4XI+3A8 found
+Failed to decrypt $lYU-0MfLdcYRMc3zeStjMZUrFWWfJduJ63Qg4nPdM7M: Failed to decrypt megolm event: no session with given ID zUhHtlnUeX1K3z+B9Qis9bwyYX9Fe91+H6Mls/YB3Kk found
+Device @admin:localhost:46167/SwAhw7KRuO isn't cross-signed
+Failed to decrypt $fdb8Fc6CbyNV-jT8qdTkqqaNKJ7Szh1NcBS_-RV9fY0: Failed to decrypt megolm event: no session with given ID i18pD2yuoUq/KuqBr6sSB766dcfoF5IEQaUAxHh/LEU found
+Failed to decrypt $FwDA2Rw63d8p3e19jk-Yoxn44mRopgvOEhjMSl5uhMs: Failed to decrypt megolm event: no session with given ID zs96LVLJLWQkk6skIpFLmP+uFVBusN5bCtqPf2aXZAs found
+Failed to decrypt $KE071QhizjV80d9Nu-xqE7f1C27ZwBlh1rxgvuuD3Ug: Failed to decrypt megolm event: no session with given ID NjBuoH3uib+sc2BiSO4AUkIG+ize9yBGBz395Iv8gEQ found
+Device @e2e_alice_1789041414_f39f:localhost:46167/E2EALICE6bba isn't cross-signed
+Device @e2e_bob_1789041424_8434:localhost:46167/E2EBOB7cc8 isn't cross-signed
+Device @admin:localhost:46167/SwAhw7KRuO isn't cross-signed
 Didn't find cross-signing key master of @admin:localhost:46167
-Device @e2e_bob_1789035179_fce3:localhost:46167/E2EBOB0f48 isn't cross-signed
-Didn't find cross-signing key master of @e2e_bob_1789035179_fce3:localhost:46167
-  [PASS] alice sent encrypted message  (event_id=$S6xkBucEzhYlqI9U3fj6HlM-hyldQf7tjv49Pt7_HGo)
-Device @e2e_alice_1789035170_f085:localhost:46167/E2EALICEa42e isn't cross-signed
-Device @e2e_alice_1789035170_f085:localhost:46167/E2EALICEa42e isn't cross-signed
-Didn't find cross-signing key master of @e2e_alice_1789035170_f085:localhost:46167
-  [PASS] bob decrypted alice's message via OlmMachine  (got='vetting-e2e secret d022432df4725018')
+Device @e2e_bob_1789041424_8434:localhost:46167/E2EBOB7cc8 isn't cross-signed
+Didn't find cross-signing key master of @e2e_bob_1789041424_8434:localhost:46167
+  [PASS] alice sent encrypted message  (event_id=$ZxkoaPPf1fe5PMENu27DbZ1eJzLNwWZ5tGhKXE-Q9-4)
+Device @e2e_alice_1789041414_f39f:localhost:46167/E2EALICE6bba isn't cross-signed
+Device @e2e_alice_1789041414_f39f:localhost:46167/E2EALICE6bba isn't cross-signed
+Didn't find cross-signing key master of @e2e_alice_1789041414_f39f:localhost:46167
+  [PASS] bob decrypted alice's message via OlmMachine  (got='vetting-e2e secret 560933f249d93a49')
 
 === 22/22 pass ===
 Unclosed client session
-client_session: <aiohttp.client.ClientSession object at 0x7f9ad0b63750>
+client_session: <aiohttp.client.ClientSession object at 0x7f0fadd4ff50>
 Unclosed connector
-connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f9ad0b794d0>, 33033896.72874171), (<aiohttp.client_proto.ResponseHandler object at 0x7f9ad0b6d250>, 33033898.728320923)])']
-connector: <aiohttp.connector.TCPConnector object at 0x7f9ad0b62090>
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f0fadd66a50>, 33040142.286193095), (<aiohttp.client_proto.ResponseHandler object at 0x7f0fadd570d0>, 33040144.282417543)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7f0fadd4ce10>
 Unclosed client session
-client_session: <aiohttp.client.ClientSession object at 0x7f9ad0b624d0>
+client_session: <aiohttp.client.ClientSession object at 0x7f0fadd4ca10>
 Unclosed connector
-connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f9ad0b6f8d0>, 33033896.71771453)])']
-connector: <aiohttp.connector.TCPConnector object at 0x7f9ad0b61fd0>
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f0fadd2b2d0>, 33040142.27344869)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7f0fadd4fa90>
 [runner] === lobby_e2e.py ===
   [PASS] /join/api rejects bogus code  (status=403 body={'error': 'invalid_code'})
-[alice] registered @e2e_welcome_alice_1789035191_6cf8:localhost:46167 device=E2EWALICEdd32
-  [PASS] [alice] /join/api returned 200  (status=200 body={'room_alias': '#welcome-4384aaec:localhost:46167'})
-  [PASS] [alice] welcome alias resolves  (dir={'room_id': '!MZfStcfcZ10v4lfVcl:localhost:46167', 'servers': ['localhost:46167']})
-  [PASS] [alice] joined welcome room via alias  (status=200 alias=#welcome-4384aaec:localhost:46167)
+[alice] registered @e2e_welcome_alice_1789041436_b829:localhost:46167 device=E2EWALICE7286
+  [PASS] [alice] /join/api returned 200  (status=200 body={'room_alias': '#welcome-2e5ad3a0:localhost:46167'})
+  [PASS] [alice] welcome alias resolves  (dir={'room_id': '!k0nnn6GmKmLSkLstjd:localhost:46167', 'servers': ['localhost:46167']})
+  [PASS] [alice] joined welcome room via alias  (status=200 alias=#welcome-2e5ad3a0:localhost:46167)
   [PASS] [alice] space invite after welcome join (within 15s)
   [PASS] [alice] confirmation message in welcome room  (msg="invite sent — accept it in Element and you're in.")
   [PASS] [alice] accepted space invite  (status=200)
-[bob] registered @e2e_welcome_bob_1789035192_5266:localhost:46167 device=E2EWBOB9ece
-  [PASS] [bob] /join/api returned 200  (status=200 body={'room_alias': '#welcome-6a214f50:localhost:46167'})
-  [PASS] [bob] welcome alias resolves  (dir={'room_id': '!YfVjYTHMuu6km9zdgM:localhost:46167', 'servers': ['localhost:46167']})
-  [PASS] [bob] joined welcome room via alias  (status=200 alias=#welcome-6a214f50:localhost:46167)
+[bob] registered @e2e_welcome_bob_1789041437_b19f:localhost:46167 device=E2EWBOBd6ba
+  [PASS] [bob] /join/api returned 200  (status=200 body={'room_alias': '#welcome-f8146f22:localhost:46167'})
+  [PASS] [bob] welcome alias resolves  (dir={'room_id': '!GJSbq3feeyMiLzk8fw:localhost:46167', 'servers': ['localhost:46167']})
+  [PASS] [bob] joined welcome room via alias  (status=200 alias=#welcome-f8146f22:localhost:46167)
   [PASS] [bob] space invite after welcome join (within 15s)
   [PASS] [bob] confirmation message in welcome room  (msg="invite sent — accept it in Element and you're in.")
   [PASS] [bob] accepted space invite  (status=200)
-Failed to decrypt $9ka7cohh1dkfQD0jPRej8LECGKHAraerLDNH5lSywjE: Failed to decrypt megolm event: no session with given ID jPUADNQAHEJVuO6jFrJuYlBYCoeQ55XxAGA1pYlzjmQ found
-Failed to decrypt $47udiYwWgeOZiLvKUZDPSAwRDXdbVFd41gL3IhXc4WQ: Failed to decrypt megolm event: no session with given ID cWD1fKp5KqRw8xcw7x63ASZLLj/l96uN10TL0JrjkkM found
-Failed to decrypt $-vTfDgKDaiWworJAYXtyGchawkLejQXo-MCUIHGKQvM: Failed to decrypt megolm event: no session with given ID d/Uu7tz1/NipS6SXPKAf6G73fFolC2JZ5WMR1jXuWAM found
-Failed to decrypt $cbApGF40ivtABzVhHsg1yTgA6d5L6YPQgLaIU67OxPM: Failed to decrypt megolm event: no session with given ID OtYQkTwE18Q+3K99HejSKRlERa6SNWo8LXPY0FkffII found
-Failed to decrypt $bDrvpscq5W1OQF_GW0JGIBXdcO2couQfga4X1gRX8EQ: Failed to decrypt megolm event: no session with given ID PXD8qoCDJN0kB5MdTTFNNGXlN89ymgwqynwRGgLxj5A found
-Failed to decrypt $S6xkBucEzhYlqI9U3fj6HlM-hyldQf7tjv49Pt7_HGo: Failed to decrypt megolm event: no session with given ID UTkSFa/5hajh4tFnjJSLAJaK3rZdz4Z3tDdnzlSRyoI found
-Failed to decrypt $8fJyIUlv8NsSGgDIrm9wATsLC868K7bXvc-I6Fgoz_M: Failed to decrypt megolm event: no session with given ID iyVErVe1ec/YYnq/wPUXzNwQesDTSmY6BiF2gqZLAPE found
-Failed to decrypt $9ka7cohh1dkfQD0jPRej8LECGKHAraerLDNH5lSywjE: Failed to decrypt megolm event: no session with given ID jPUADNQAHEJVuO6jFrJuYlBYCoeQ55XxAGA1pYlzjmQ found
-Failed to decrypt $CcdmMoKYGZ3xtw8Kr66-lVQh-t8hgPVHnTZDYvql2aM: Failed to decrypt megolm event: no session with given ID 9YJbg+ivO5ZjdLazUnS7fpInnfWiQFGGRBsxcyUw3t0 found
-Failed to decrypt $47udiYwWgeOZiLvKUZDPSAwRDXdbVFd41gL3IhXc4WQ: Failed to decrypt megolm event: no session with given ID cWD1fKp5KqRw8xcw7x63ASZLLj/l96uN10TL0JrjkkM found
-Failed to decrypt $9ka7cohh1dkfQD0jPRej8LECGKHAraerLDNH5lSywjE: Failed to decrypt megolm event: no session with given ID jPUADNQAHEJVuO6jFrJuYlBYCoeQ55XxAGA1pYlzjmQ found
-Failed to decrypt $-vTfDgKDaiWworJAYXtyGchawkLejQXo-MCUIHGKQvM: Failed to decrypt megolm event: no session with given ID d/Uu7tz1/NipS6SXPKAf6G73fFolC2JZ5WMR1jXuWAM found
+Failed to decrypt $dj_UUarcBuClTP6Ab0E0F8CdLRQ9a02f-OUVdHwbYgY: Failed to decrypt megolm event: no session with given ID tIQUy/z9PsWc7KZAIXz5sp4DwyXqsBLYQyFl4XI+3A8 found
+Failed to decrypt $lYU-0MfLdcYRMc3zeStjMZUrFWWfJduJ63Qg4nPdM7M: Failed to decrypt megolm event: no session with given ID zUhHtlnUeX1K3z+B9Qis9bwyYX9Fe91+H6Mls/YB3Kk found
+Failed to decrypt $fdb8Fc6CbyNV-jT8qdTkqqaNKJ7Szh1NcBS_-RV9fY0: Failed to decrypt megolm event: no session with given ID i18pD2yuoUq/KuqBr6sSB766dcfoF5IEQaUAxHh/LEU found
+Failed to decrypt $dj_UUarcBuClTP6Ab0E0F8CdLRQ9a02f-OUVdHwbYgY: Failed to decrypt megolm event: no session with given ID tIQUy/z9PsWc7KZAIXz5sp4DwyXqsBLYQyFl4XI+3A8 found
+Failed to decrypt $FwDA2Rw63d8p3e19jk-Yoxn44mRopgvOEhjMSl5uhMs: Failed to decrypt megolm event: no session with given ID zs96LVLJLWQkk6skIpFLmP+uFVBusN5bCtqPf2aXZAs found
+Failed to decrypt $KE071QhizjV80d9Nu-xqE7f1C27ZwBlh1rxgvuuD3Ug: Failed to decrypt megolm event: no session with given ID NjBuoH3uib+sc2BiSO4AUkIG+ize9yBGBz395Iv8gEQ found
+Failed to decrypt $ZxkoaPPf1fe5PMENu27DbZ1eJzLNwWZ5tGhKXE-Q9-4: Failed to decrypt megolm event: no session with given ID V6SWxlSjST67EECT7priw6Qo/fRyGTnn/q7MEpV+FHw found
+Failed to decrypt $Dk7veCkZ7ZXs3a7OdXOrqzvBm_IsQyt50mCg8vgRD4Y: Failed to decrypt megolm event: no session with given ID h2CPP6XwT/n7jRK5b8ySvAD9D7BNM1CWHiTgMLhrG80 found
+Failed to decrypt $qDEi4dxcn33KcHMNc7hodPUt2Nx1rDL8SbnGscEr1_c: Failed to decrypt megolm event: no session with given ID uGoQg42HMxbIitQfE+F5TN8d5+VwGKjA8R/1bMH921E found
+Failed to decrypt $lYU-0MfLdcYRMc3zeStjMZUrFWWfJduJ63Qg4nPdM7M: Failed to decrypt megolm event: no session with given ID zUhHtlnUeX1K3z+B9Qis9bwyYX9Fe91+H6Mls/YB3Kk found
+Failed to decrypt $fdb8Fc6CbyNV-jT8qdTkqqaNKJ7Szh1NcBS_-RV9fY0: Failed to decrypt megolm event: no session with given ID i18pD2yuoUq/KuqBr6sSB766dcfoF5IEQaUAxHh/LEU found
+Failed to decrypt $FwDA2Rw63d8p3e19jk-Yoxn44mRopgvOEhjMSl5uhMs: Failed to decrypt megolm event: no session with given ID zs96LVLJLWQkk6skIpFLmP+uFVBusN5bCtqPf2aXZAs found
+Failed to decrypt $KE071QhizjV80d9Nu-xqE7f1C27ZwBlh1rxgvuuD3Ug: Failed to decrypt megolm event: no session with given ID NjBuoH3uib+sc2BiSO4AUkIG+ize9yBGBz395Iv8gEQ found
+Failed to decrypt $ZxkoaPPf1fe5PMENu27DbZ1eJzLNwWZ5tGhKXE-Q9-4: Failed to decrypt megolm event: no session with given ID V6SWxlSjST67EECT7priw6Qo/fRyGTnn/q7MEpV+FHw found
+Failed to decrypt $Dk7veCkZ7ZXs3a7OdXOrqzvBm_IsQyt50mCg8vgRD4Y: Failed to decrypt megolm event: no session with given ID h2CPP6XwT/n7jRK5b8ySvAD9D7BNM1CWHiTgMLhrG80 found
+Failed to decrypt $dj_UUarcBuClTP6Ab0E0F8CdLRQ9a02f-OUVdHwbYgY: Failed to decrypt megolm event: no session with given ID tIQUy/z9PsWc7KZAIXz5sp4DwyXqsBLYQyFl4XI+3A8 found
+Failed to decrypt $qDEi4dxcn33KcHMNc7hodPUt2Nx1rDL8SbnGscEr1_c: Failed to decrypt megolm event: no session with given ID uGoQg42HMxbIitQfE+F5TN8d5+VwGKjA8R/1bMH921E found
+Failed to decrypt $dj_UUarcBuClTP6Ab0E0F8CdLRQ9a02f-OUVdHwbYgY: Failed to decrypt megolm event: no session with given ID tIQUy/z9PsWc7KZAIXz5sp4DwyXqsBLYQyFl4XI+3A8 found
+Failed to decrypt $lYU-0MfLdcYRMc3zeStjMZUrFWWfJduJ63Qg4nPdM7M: Failed to decrypt megolm event: no session with given ID zUhHtlnUeX1K3z+B9Qis9bwyYX9Fe91+H6Mls/YB3Kk found
+Failed to decrypt $lYU-0MfLdcYRMc3zeStjMZUrFWWfJduJ63Qg4nPdM7M: Failed to decrypt megolm event: no session with given ID zUhHtlnUeX1K3z+B9Qis9bwyYX9Fe91+H6Mls/YB3Kk found
+Failed to decrypt $fdb8Fc6CbyNV-jT8qdTkqqaNKJ7Szh1NcBS_-RV9fY0: Failed to decrypt megolm event: no session with given ID i18pD2yuoUq/KuqBr6sSB766dcfoF5IEQaUAxHh/LEU found
+Failed to decrypt $FwDA2Rw63d8p3e19jk-Yoxn44mRopgvOEhjMSl5uhMs: Failed to decrypt megolm event: no session with given ID zs96LVLJLWQkk6skIpFLmP+uFVBusN5bCtqPf2aXZAs found
+Failed to decrypt $KE071QhizjV80d9Nu-xqE7f1C27ZwBlh1rxgvuuD3Ug: Failed to decrypt megolm event: no session with given ID NjBuoH3uib+sc2BiSO4AUkIG+ize9yBGBz395Iv8gEQ found
   [PASS] E2EE child room reports encrypted (alice side)
   [PASS] E2EE child room reports encrypted (bob side)
-Failed to decrypt $cbApGF40ivtABzVhHsg1yTgA6d5L6YPQgLaIU67OxPM: Failed to decrypt megolm event: no session with given ID OtYQkTwE18Q+3K99HejSKRlERa6SNWo8LXPY0FkffII found
-Failed to decrypt $47udiYwWgeOZiLvKUZDPSAwRDXdbVFd41gL3IhXc4WQ: Failed to decrypt megolm event: no session with given ID cWD1fKp5KqRw8xcw7x63ASZLLj/l96uN10TL0JrjkkM found
-Failed to decrypt $-vTfDgKDaiWworJAYXtyGchawkLejQXo-MCUIHGKQvM: Failed to decrypt megolm event: no session with given ID d/Uu7tz1/NipS6SXPKAf6G73fFolC2JZ5WMR1jXuWAM found
-Failed to decrypt $bDrvpscq5W1OQF_GW0JGIBXdcO2couQfga4X1gRX8EQ: Failed to decrypt megolm event: no session with given ID PXD8qoCDJN0kB5MdTTFNNGXlN89ymgwqynwRGgLxj5A found
-Failed to decrypt $S6xkBucEzhYlqI9U3fj6HlM-hyldQf7tjv49Pt7_HGo: Failed to decrypt megolm event: no session with given ID UTkSFa/5hajh4tFnjJSLAJaK3rZdz4Z3tDdnzlSRyoI found
-Failed to decrypt $8fJyIUlv8NsSGgDIrm9wATsLC868K7bXvc-I6Fgoz_M: Failed to decrypt megolm event: no session with given ID iyVErVe1ec/YYnq/wPUXzNwQesDTSmY6BiF2gqZLAPE found
-Failed to decrypt $CcdmMoKYGZ3xtw8Kr66-lVQh-t8hgPVHnTZDYvql2aM: Failed to decrypt megolm event: no session with given ID 9YJbg+ivO5ZjdLazUnS7fpInnfWiQFGGRBsxcyUw3t0 found
-Failed to decrypt $cbApGF40ivtABzVhHsg1yTgA6d5L6YPQgLaIU67OxPM: Failed to decrypt megolm event: no session with given ID OtYQkTwE18Q+3K99HejSKRlERa6SNWo8LXPY0FkffII found
-Failed to decrypt $9ka7cohh1dkfQD0jPRej8LECGKHAraerLDNH5lSywjE: Failed to decrypt megolm event: no session with given ID jPUADNQAHEJVuO6jFrJuYlBYCoeQ55XxAGA1pYlzjmQ found
-Failed to decrypt $bDrvpscq5W1OQF_GW0JGIBXdcO2couQfga4X1gRX8EQ: Failed to decrypt megolm event: no session with given ID PXD8qoCDJN0kB5MdTTFNNGXlN89ymgwqynwRGgLxj5A found
-Failed to decrypt $47udiYwWgeOZiLvKUZDPSAwRDXdbVFd41gL3IhXc4WQ: Failed to decrypt megolm event: no session with given ID cWD1fKp5KqRw8xcw7x63ASZLLj/l96uN10TL0JrjkkM found
-Failed to decrypt $-vTfDgKDaiWworJAYXtyGchawkLejQXo-MCUIHGKQvM: Failed to decrypt megolm event: no session with given ID d/Uu7tz1/NipS6SXPKAf6G73fFolC2JZ5WMR1jXuWAM found
-Failed to decrypt $cbApGF40ivtABzVhHsg1yTgA6d5L6YPQgLaIU67OxPM: Failed to decrypt megolm event: no session with given ID OtYQkTwE18Q+3K99HejSKRlERa6SNWo8LXPY0FkffII found
-Device @admin:localhost:46167/FWnJon5AOy isn't cross-signed
-Failed to decrypt $bDrvpscq5W1OQF_GW0JGIBXdcO2couQfga4X1gRX8EQ: Failed to decrypt megolm event: no session with given ID PXD8qoCDJN0kB5MdTTFNNGXlN89ymgwqynwRGgLxj5A found
-Failed to decrypt $S6xkBucEzhYlqI9U3fj6HlM-hyldQf7tjv49Pt7_HGo: Failed to decrypt megolm event: no session with given ID UTkSFa/5hajh4tFnjJSLAJaK3rZdz4Z3tDdnzlSRyoI found
-Failed to decrypt $8fJyIUlv8NsSGgDIrm9wATsLC868K7bXvc-I6Fgoz_M: Failed to decrypt megolm event: no session with given ID iyVErVe1ec/YYnq/wPUXzNwQesDTSmY6BiF2gqZLAPE found
-Failed to decrypt $CcdmMoKYGZ3xtw8Kr66-lVQh-t8hgPVHnTZDYvql2aM: Failed to decrypt megolm event: no session with given ID 9YJbg+ivO5ZjdLazUnS7fpInnfWiQFGGRBsxcyUw3t0 found
-Failed to decrypt $9ka7cohh1dkfQD0jPRej8LECGKHAraerLDNH5lSywjE: Failed to decrypt megolm event: no session with given ID jPUADNQAHEJVuO6jFrJuYlBYCoeQ55XxAGA1pYlzjmQ found
-Device @e2e_alice_1789035170_f085:localhost:46167/E2EALICEa42e isn't cross-signed
-Failed to decrypt $47udiYwWgeOZiLvKUZDPSAwRDXdbVFd41gL3IhXc4WQ: Failed to decrypt megolm event: no session with given ID cWD1fKp5KqRw8xcw7x63ASZLLj/l96uN10TL0JrjkkM found
-Failed to decrypt $-vTfDgKDaiWworJAYXtyGchawkLejQXo-MCUIHGKQvM: Failed to decrypt megolm event: no session with given ID d/Uu7tz1/NipS6SXPKAf6G73fFolC2JZ5WMR1jXuWAM found
-Failed to decrypt $cbApGF40ivtABzVhHsg1yTgA6d5L6YPQgLaIU67OxPM: Failed to decrypt megolm event: no session with given ID OtYQkTwE18Q+3K99HejSKRlERa6SNWo8LXPY0FkffII found
-Device @e2e_bob_1789035179_fce3:localhost:46167/E2EBOB0f48 isn't cross-signed
-Failed to decrypt $bDrvpscq5W1OQF_GW0JGIBXdcO2couQfga4X1gRX8EQ: Failed to decrypt megolm event: no session with given ID PXD8qoCDJN0kB5MdTTFNNGXlN89ymgwqynwRGgLxj5A found
-Failed to decrypt $S6xkBucEzhYlqI9U3fj6HlM-hyldQf7tjv49Pt7_HGo: Failed to decrypt megolm event: no session with given ID UTkSFa/5hajh4tFnjJSLAJaK3rZdz4Z3tDdnzlSRyoI found
-Failed to decrypt $8fJyIUlv8NsSGgDIrm9wATsLC868K7bXvc-I6Fgoz_M: Failed to decrypt megolm event: no session with given ID iyVErVe1ec/YYnq/wPUXzNwQesDTSmY6BiF2gqZLAPE found
-Failed to decrypt $CcdmMoKYGZ3xtw8Kr66-lVQh-t8hgPVHnTZDYvql2aM: Failed to decrypt megolm event: no session with given ID 9YJbg+ivO5ZjdLazUnS7fpInnfWiQFGGRBsxcyUw3t0 found
-Device @e2e_welcome_alice_1789035191_6cf8:localhost:46167/E2EWALICEdd32 isn't cross-signed
-Device @e2e_welcome_bob_1789035192_5266:localhost:46167/E2EWBOB9ece isn't cross-signed
-Failed to decrypt $S6xkBucEzhYlqI9U3fj6HlM-hyldQf7tjv49Pt7_HGo: Failed to decrypt megolm event: no session with given ID UTkSFa/5hajh4tFnjJSLAJaK3rZdz4Z3tDdnzlSRyoI found
-Failed to decrypt $8fJyIUlv8NsSGgDIrm9wATsLC868K7bXvc-I6Fgoz_M: Failed to decrypt megolm event: no session with given ID iyVErVe1ec/YYnq/wPUXzNwQesDTSmY6BiF2gqZLAPE found
-Failed to decrypt $CcdmMoKYGZ3xtw8Kr66-lVQh-t8hgPVHnTZDYvql2aM: Failed to decrypt megolm event: no session with given ID 9YJbg+ivO5ZjdLazUnS7fpInnfWiQFGGRBsxcyUw3t0 found
-Failed to decrypt $9ka7cohh1dkfQD0jPRej8LECGKHAraerLDNH5lSywjE: Failed to decrypt megolm event: no session with given ID jPUADNQAHEJVuO6jFrJuYlBYCoeQ55XxAGA1pYlzjmQ found
-Failed to decrypt $47udiYwWgeOZiLvKUZDPSAwRDXdbVFd41gL3IhXc4WQ: Failed to decrypt megolm event: no session with given ID cWD1fKp5KqRw8xcw7x63ASZLLj/l96uN10TL0JrjkkM found
-Failed to decrypt $-vTfDgKDaiWworJAYXtyGchawkLejQXo-MCUIHGKQvM: Failed to decrypt megolm event: no session with given ID d/Uu7tz1/NipS6SXPKAf6G73fFolC2JZ5WMR1jXuWAM found
-Device @admin:localhost:46167/FWnJon5AOy isn't cross-signed
+Failed to decrypt $ZxkoaPPf1fe5PMENu27DbZ1eJzLNwWZ5tGhKXE-Q9-4: Failed to decrypt megolm event: no session with given ID V6SWxlSjST67EECT7priw6Qo/fRyGTnn/q7MEpV+FHw found
+Failed to decrypt $fdb8Fc6CbyNV-jT8qdTkqqaNKJ7Szh1NcBS_-RV9fY0: Failed to decrypt megolm event: no session with given ID i18pD2yuoUq/KuqBr6sSB766dcfoF5IEQaUAxHh/LEU found
+Failed to decrypt $Dk7veCkZ7ZXs3a7OdXOrqzvBm_IsQyt50mCg8vgRD4Y: Failed to decrypt megolm event: no session with given ID h2CPP6XwT/n7jRK5b8ySvAD9D7BNM1CWHiTgMLhrG80 found
+Failed to decrypt $qDEi4dxcn33KcHMNc7hodPUt2Nx1rDL8SbnGscEr1_c: Failed to decrypt megolm event: no session with given ID uGoQg42HMxbIitQfE+F5TN8d5+VwGKjA8R/1bMH921E found
+Failed to decrypt $dj_UUarcBuClTP6Ab0E0F8CdLRQ9a02f-OUVdHwbYgY: Failed to decrypt megolm event: no session with given ID tIQUy/z9PsWc7KZAIXz5sp4DwyXqsBLYQyFl4XI+3A8 found
+Failed to decrypt $lYU-0MfLdcYRMc3zeStjMZUrFWWfJduJ63Qg4nPdM7M: Failed to decrypt megolm event: no session with given ID zUhHtlnUeX1K3z+B9Qis9bwyYX9Fe91+H6Mls/YB3Kk found
+Failed to decrypt $fdb8Fc6CbyNV-jT8qdTkqqaNKJ7Szh1NcBS_-RV9fY0: Failed to decrypt megolm event: no session with given ID i18pD2yuoUq/KuqBr6sSB766dcfoF5IEQaUAxHh/LEU found
+Failed to decrypt $FwDA2Rw63d8p3e19jk-Yoxn44mRopgvOEhjMSl5uhMs: Failed to decrypt megolm event: no session with given ID zs96LVLJLWQkk6skIpFLmP+uFVBusN5bCtqPf2aXZAs found
+Failed to decrypt $FwDA2Rw63d8p3e19jk-Yoxn44mRopgvOEhjMSl5uhMs: Failed to decrypt megolm event: no session with given ID zs96LVLJLWQkk6skIpFLmP+uFVBusN5bCtqPf2aXZAs found
+Failed to decrypt $KE071QhizjV80d9Nu-xqE7f1C27ZwBlh1rxgvuuD3Ug: Failed to decrypt megolm event: no session with given ID NjBuoH3uib+sc2BiSO4AUkIG+ize9yBGBz395Iv8gEQ found
+Failed to decrypt $KE071QhizjV80d9Nu-xqE7f1C27ZwBlh1rxgvuuD3Ug: Failed to decrypt megolm event: no session with given ID NjBuoH3uib+sc2BiSO4AUkIG+ize9yBGBz395Iv8gEQ found
+Device @admin:localhost:46167/SwAhw7KRuO isn't cross-signed
+Failed to decrypt $ZxkoaPPf1fe5PMENu27DbZ1eJzLNwWZ5tGhKXE-Q9-4: Failed to decrypt megolm event: no session with given ID V6SWxlSjST67EECT7priw6Qo/fRyGTnn/q7MEpV+FHw found
+Failed to decrypt $Dk7veCkZ7ZXs3a7OdXOrqzvBm_IsQyt50mCg8vgRD4Y: Failed to decrypt megolm event: no session with given ID h2CPP6XwT/n7jRK5b8ySvAD9D7BNM1CWHiTgMLhrG80 found
+Failed to decrypt $qDEi4dxcn33KcHMNc7hodPUt2Nx1rDL8SbnGscEr1_c: Failed to decrypt megolm event: no session with given ID uGoQg42HMxbIitQfE+F5TN8d5+VwGKjA8R/1bMH921E found
+Device @e2e_alice_1789041414_f39f:localhost:46167/E2EALICE6bba isn't cross-signed
+Device @e2e_bob_1789041424_8434:localhost:46167/E2EBOB7cc8 isn't cross-signed
+Device @e2e_welcome_alice_1789041436_b829:localhost:46167/E2EWALICE7286 isn't cross-signed
+Device @e2e_welcome_bob_1789041437_b19f:localhost:46167/E2EWBOBd6ba isn't cross-signed
+Failed to decrypt $ZxkoaPPf1fe5PMENu27DbZ1eJzLNwWZ5tGhKXE-Q9-4: Failed to decrypt megolm event: no session with given ID V6SWxlSjST67EECT7priw6Qo/fRyGTnn/q7MEpV+FHw found
+Failed to decrypt $Dk7veCkZ7ZXs3a7OdXOrqzvBm_IsQyt50mCg8vgRD4Y: Failed to decrypt megolm event: no session with given ID h2CPP6XwT/n7jRK5b8ySvAD9D7BNM1CWHiTgMLhrG80 found
+Failed to decrypt $qDEi4dxcn33KcHMNc7hodPUt2Nx1rDL8SbnGscEr1_c: Failed to decrypt megolm event: no session with given ID uGoQg42HMxbIitQfE+F5TN8d5+VwGKjA8R/1bMH921E found
+Failed to decrypt $dj_UUarcBuClTP6Ab0E0F8CdLRQ9a02f-OUVdHwbYgY: Failed to decrypt megolm event: no session with given ID tIQUy/z9PsWc7KZAIXz5sp4DwyXqsBLYQyFl4XI+3A8 found
+Failed to decrypt $lYU-0MfLdcYRMc3zeStjMZUrFWWfJduJ63Qg4nPdM7M: Failed to decrypt megolm event: no session with given ID zUhHtlnUeX1K3z+B9Qis9bwyYX9Fe91+H6Mls/YB3Kk found
+Failed to decrypt $fdb8Fc6CbyNV-jT8qdTkqqaNKJ7Szh1NcBS_-RV9fY0: Failed to decrypt megolm event: no session with given ID i18pD2yuoUq/KuqBr6sSB766dcfoF5IEQaUAxHh/LEU found
+Device @admin:localhost:46167/SwAhw7KRuO isn't cross-signed
 Didn't find cross-signing key master of @admin:localhost:46167
-Failed to decrypt $cbApGF40ivtABzVhHsg1yTgA6d5L6YPQgLaIU67OxPM: Failed to decrypt megolm event: no session with given ID OtYQkTwE18Q+3K99HejSKRlERa6SNWo8LXPY0FkffII found
-Failed to decrypt $bDrvpscq5W1OQF_GW0JGIBXdcO2couQfga4X1gRX8EQ: Failed to decrypt megolm event: no session with given ID PXD8qoCDJN0kB5MdTTFNNGXlN89ymgwqynwRGgLxj5A found
-Device @e2e_alice_1789035170_f085:localhost:46167/E2EALICEa42e isn't cross-signed
-Didn't find cross-signing key master of @e2e_alice_1789035170_f085:localhost:46167
-Failed to decrypt $S6xkBucEzhYlqI9U3fj6HlM-hyldQf7tjv49Pt7_HGo: Failed to decrypt megolm event: no session with given ID UTkSFa/5hajh4tFnjJSLAJaK3rZdz4Z3tDdnzlSRyoI found
-Failed to decrypt $8fJyIUlv8NsSGgDIrm9wATsLC868K7bXvc-I6Fgoz_M: Failed to decrypt megolm event: no session with given ID iyVErVe1ec/YYnq/wPUXzNwQesDTSmY6BiF2gqZLAPE found
-Device @e2e_bob_1789035179_fce3:localhost:46167/E2EBOB0f48 isn't cross-signed
-Didn't find cross-signing key master of @e2e_bob_1789035179_fce3:localhost:46167
-Failed to decrypt $CcdmMoKYGZ3xtw8Kr66-lVQh-t8hgPVHnTZDYvql2aM: Failed to decrypt megolm event: no session with given ID 9YJbg+ivO5ZjdLazUnS7fpInnfWiQFGGRBsxcyUw3t0 found
-Device @e2e_welcome_bob_1789035192_5266:localhost:46167/E2EWBOB9ece isn't cross-signed
-Didn't find cross-signing key master of @e2e_welcome_bob_1789035192_5266:localhost:46167
-  [PASS] alice sent encrypted message  (event_id=$-6_lYlwrra9_tsnZVs8kd8nYq-Nt8wdb_ZjWIkWgmZc)
-Device @e2e_welcome_alice_1789035191_6cf8:localhost:46167/E2EWALICEdd32 isn't cross-signed
-Device @e2e_welcome_alice_1789035191_6cf8:localhost:46167/E2EWALICEdd32 isn't cross-signed
-Didn't find cross-signing key master of @e2e_welcome_alice_1789035191_6cf8:localhost:46167
-  [PASS] bob decrypted alice's message via OlmMachine  (got='welcome-e2e secret 3f6054e1c80e6462')
-  [PASS] [alice-redo] /join/api returned 200 for existing member  (status=200 body={'room_alias': '#welcome-3406b59e:localhost:46167'})
+Failed to decrypt $FwDA2Rw63d8p3e19jk-Yoxn44mRopgvOEhjMSl5uhMs: Failed to decrypt megolm event: no session with given ID zs96LVLJLWQkk6skIpFLmP+uFVBusN5bCtqPf2aXZAs found
+Failed to decrypt $KE071QhizjV80d9Nu-xqE7f1C27ZwBlh1rxgvuuD3Ug: Failed to decrypt megolm event: no session with given ID NjBuoH3uib+sc2BiSO4AUkIG+ize9yBGBz395Iv8gEQ found
+Device @e2e_alice_1789041414_f39f:localhost:46167/E2EALICE6bba isn't cross-signed
+Didn't find cross-signing key master of @e2e_alice_1789041414_f39f:localhost:46167
+Failed to decrypt $ZxkoaPPf1fe5PMENu27DbZ1eJzLNwWZ5tGhKXE-Q9-4: Failed to decrypt megolm event: no session with given ID V6SWxlSjST67EECT7priw6Qo/fRyGTnn/q7MEpV+FHw found
+Failed to decrypt $Dk7veCkZ7ZXs3a7OdXOrqzvBm_IsQyt50mCg8vgRD4Y: Failed to decrypt megolm event: no session with given ID h2CPP6XwT/n7jRK5b8ySvAD9D7BNM1CWHiTgMLhrG80 found
+Device @e2e_bob_1789041424_8434:localhost:46167/E2EBOB7cc8 isn't cross-signed
+Didn't find cross-signing key master of @e2e_bob_1789041424_8434:localhost:46167
+Failed to decrypt $qDEi4dxcn33KcHMNc7hodPUt2Nx1rDL8SbnGscEr1_c: Failed to decrypt megolm event: no session with given ID uGoQg42HMxbIitQfE+F5TN8d5+VwGKjA8R/1bMH921E found
+Device @e2e_welcome_bob_1789041437_b19f:localhost:46167/E2EWBOBd6ba isn't cross-signed
+Didn't find cross-signing key master of @e2e_welcome_bob_1789041437_b19f:localhost:46167
+  [PASS] alice sent encrypted message  (event_id=$JfHKpm0ZVzOawNncIMD-a_sz8oQFbrhO4PIYdWddG6s)
+Device @e2e_welcome_alice_1789041436_b829:localhost:46167/E2EWALICE7286 isn't cross-signed
+Device @e2e_welcome_alice_1789041436_b829:localhost:46167/E2EWALICE7286 isn't cross-signed
+Didn't find cross-signing key master of @e2e_welcome_alice_1789041436_b829:localhost:46167
+  [PASS] bob decrypted alice's message via OlmMachine  (got='welcome-e2e secret e43e3274f8be79c1')
+  [PASS] [alice-redo] /join/api returned 200 for existing member  (status=200 body={'room_alias': '#welcome-9c03d2d9:localhost:46167'})
   [PASS] [alice-redo] joined fresh welcome room as existing member  (status=200)
   [PASS] [alice-redo] got 'already in space' ack from bot  (ack="you're already in shape rotator — see you in the space.")
-  [PASS] [eviction] minted a room for a live code  (status=200 body={'room_alias': '#welcome-6a214f50:localhost:46167'})
+  [PASS] [eviction] minted a room for a live code  (status=200 body={'room_alias': '#welcome-f8146f22:localhost:46167'})
   [PASS] [eviction] old room carries no tombstone  (status=404)
   [PASS] [eviction] room bot left the room (no tombstone)  (status=200)
-  [PASS] [eviction] POST remints instead of returning the stale alias  (status=200 old=!YfVjYTHMuu6km9zdgM:localhost:46167 new=!5DgPugD3DT86TR6FzP:localhost:46167)
+  [PASS] [eviction] POST remints instead of returning the stale alias  (status=200 old=!GJSbq3feeyMiLzk8fw:localhost:46167 new=!I1I563xqjXQxWRja2p:localhost:46167)
   [PASS] [invite-fail] user joins the room  (status=200)
 [welcome] invite of @e2e-invitefail-remote:unreachable.invalid failed status=500: {"errcode":"M_UNKNOWN","error":"There was a problem with the 'allow_federation' directive in your configuration: Federation is disabled. config=allow_federation"}
   [PASS] [invite-fail] 500'd invite consumed no use  (uses_remaining=3)
-  [PASS] [invite-fail] exactly-once guard not armed  (meta={'created_at': 1789035196.8244994, 'room_alias': '#welcome-fe4df1fe:localhost:46167', 'room_id': '!AlGbXbV0PRrxqwXmni:localhost:46167'})
+  [PASS] [invite-fail] exactly-once guard not armed  (meta={'created_at': 1789041442.12414, 'room_alias': '#welcome-252ccac0:localhost:46167', 'room_id': '!dZHH4lCRjQWX5suICh:localhost:46167'})
   [PASS] [invite-fail] failure audited  (rows=['welcome_invite_failed'])
   [PASS] [invite-fail] no confirmation posted  (saw=None)
-[welcome] @e2e_invitefail_1789035196_3e6c:localhost:46167 joined via e2e-invitefail-6aebaab0 (uses_left=2)
+[welcome] @e2e_invitefail_1789041442_4da6:localhost:46167 joined via e2e-invitefail-a27dbf97 (uses_left=2)
   [PASS] [invite-fail] retry consumed exactly one use  (uses_remaining=2)
-  [PASS] [invite-fail] retry recorded the joiner  (meta={'created_at': 1789035196.8244994, 'room_alias': '#welcome-fe4df1fe:localhost:46167', 'room_id': '!AlGbXbV0PRrxqwXmni:localhost:46167', 'joined_by': '@e2e_invitefail_1789035196_3e6c:localhost:46167', 'joined_at': 1789035208.8839543})
+  [PASS] [invite-fail] retry recorded the joiner  (meta={'created_at': 1789041442.12414, 'room_alias': '#welcome-252ccac0:localhost:46167', 'room_id': '!dZHH4lCRjQWX5suICh:localhost:46167', 'joined_by': '@e2e_invitefail_1789041442_4da6:localhost:46167', 'joined_at': 1789041454.1672072})
   [PASS] [invite-fail] retry posted the confirmation  (ack="invite sent — accept it in Element and you're in.")
-  [PASS] [invite-fail] retry delivered the space invite  (room=!UCiSyAmOjVLMNcVAvOHhIDEuxfLa3SpLQYjXe59lmiM)
+  [PASS] [invite-fail] retry delivered the space invite  (room=!3kGE6Uwx3PY11iiqcy_uoM_Qv1PZqnkkRFjb6CxqW6Q)
 
 === 33/33 pass ===
 Unclosed client session
-client_session: <aiohttp.client.ClientSession object at 0x7ff7a145b350>
+client_session: <aiohttp.client.ClientSession object at 0x7faa603ead10>
 Unclosed client session
-client_session: <aiohttp.client.ClientSession object at 0x7ff7a1459f90>
+client_session: <aiohttp.client.ClientSession object at 0x7faa603ea650>
 Unclosed connector
-connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7ff7a00fc8d0>, 33033901.525863376), (<aiohttp.client_proto.ResponseHandler object at 0x7ff7a14625d0>, 33033903.524968136)])']
-connector: <aiohttp.connector.TCPConnector object at 0x7ff7a145a3d0>
-Unclosed connector
-connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7ff7a1460d50>, 33033901.514244057)])']
-connector: <aiohttp.connector.TCPConnector object at 0x7ff7a143b790>
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7faa603f25d0>, 33040148.99143699)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7faa603ea350>
 [runner] === admin_e2ee.py ===
-[admin_e2ee] test user: @admin_e2ee_1789035209_66f3:localhost:46167 device=E2EEADMIN5d3c
+[admin_e2ee] test user: @admin_e2ee_1789041454_5f4f:localhost:46167 device=E2EEADMINe697
   [PASS] bumped test user PL to 50 in admin room  (status=200)
   [PASS] invited test user to admin room  (status=200)
   [PASS] test user joined admin room  (status=200)
-Failed to decrypt $9ka7cohh1dkfQD0jPRej8LECGKHAraerLDNH5lSywjE: Failed to decrypt megolm event: no session with given ID jPUADNQAHEJVuO6jFrJuYlBYCoeQ55XxAGA1pYlzjmQ found
-Failed to decrypt $47udiYwWgeOZiLvKUZDPSAwRDXdbVFd41gL3IhXc4WQ: Failed to decrypt megolm event: no session with given ID cWD1fKp5KqRw8xcw7x63ASZLLj/l96uN10TL0JrjkkM found
-Failed to decrypt $-vTfDgKDaiWworJAYXtyGchawkLejQXo-MCUIHGKQvM: Failed to decrypt megolm event: no session with given ID d/Uu7tz1/NipS6SXPKAf6G73fFolC2JZ5WMR1jXuWAM found
-Failed to decrypt $cbApGF40ivtABzVhHsg1yTgA6d5L6YPQgLaIU67OxPM: Failed to decrypt megolm event: no session with given ID OtYQkTwE18Q+3K99HejSKRlERa6SNWo8LXPY0FkffII found
-Failed to decrypt $bDrvpscq5W1OQF_GW0JGIBXdcO2couQfga4X1gRX8EQ: Failed to decrypt megolm event: no session with given ID PXD8qoCDJN0kB5MdTTFNNGXlN89ymgwqynwRGgLxj5A found
-Failed to decrypt $S6xkBucEzhYlqI9U3fj6HlM-hyldQf7tjv49Pt7_HGo: Failed to decrypt megolm event: no session with given ID UTkSFa/5hajh4tFnjJSLAJaK3rZdz4Z3tDdnzlSRyoI found
-Failed to decrypt $8fJyIUlv8NsSGgDIrm9wATsLC868K7bXvc-I6Fgoz_M: Failed to decrypt megolm event: no session with given ID iyVErVe1ec/YYnq/wPUXzNwQesDTSmY6BiF2gqZLAPE found
-Failed to decrypt $CcdmMoKYGZ3xtw8Kr66-lVQh-t8hgPVHnTZDYvql2aM: Failed to decrypt megolm event: no session with given ID 9YJbg+ivO5ZjdLazUnS7fpInnfWiQFGGRBsxcyUw3t0 found
+Failed to decrypt $dj_UUarcBuClTP6Ab0E0F8CdLRQ9a02f-OUVdHwbYgY: Failed to decrypt megolm event: no session with given ID tIQUy/z9PsWc7KZAIXz5sp4DwyXqsBLYQyFl4XI+3A8 found
+Failed to decrypt $lYU-0MfLdcYRMc3zeStjMZUrFWWfJduJ63Qg4nPdM7M: Failed to decrypt megolm event: no session with given ID zUhHtlnUeX1K3z+B9Qis9bwyYX9Fe91+H6Mls/YB3Kk found
+Failed to decrypt $fdb8Fc6CbyNV-jT8qdTkqqaNKJ7Szh1NcBS_-RV9fY0: Failed to decrypt megolm event: no session with given ID i18pD2yuoUq/KuqBr6sSB766dcfoF5IEQaUAxHh/LEU found
   [PASS] admin room reports encrypted
-Failed to decrypt $-6_lYlwrra9_tsnZVs8kd8nYq-Nt8wdb_ZjWIkWgmZc: Failed to decrypt megolm event: no session with given ID MEMR73XTLS594aOfUsIrQzG9/mGZ3EVW1WdhbFC8ZFQ found
-Failed to decrypt $pI9tSpF5tj0stknhw0K9DS0uuJlDG4dRmQgmLkKJ5ek: Failed to decrypt megolm event: no session with given ID yhDZLZxO50cX7SQNFoIKbvTWty31Fust03TYMq7lz0g found
-Failed to decrypt $9ka7cohh1dkfQD0jPRej8LECGKHAraerLDNH5lSywjE: Failed to decrypt megolm event: no session with given ID jPUADNQAHEJVuO6jFrJuYlBYCoeQ55XxAGA1pYlzjmQ found
-Failed to decrypt $47udiYwWgeOZiLvKUZDPSAwRDXdbVFd41gL3IhXc4WQ: Failed to decrypt megolm event: no session with given ID cWD1fKp5KqRw8xcw7x63ASZLLj/l96uN10TL0JrjkkM found
-Failed to decrypt $-vTfDgKDaiWworJAYXtyGchawkLejQXo-MCUIHGKQvM: Failed to decrypt megolm event: no session with given ID d/Uu7tz1/NipS6SXPKAf6G73fFolC2JZ5WMR1jXuWAM found
-Failed to decrypt $cbApGF40ivtABzVhHsg1yTgA6d5L6YPQgLaIU67OxPM: Failed to decrypt megolm event: no session with given ID OtYQkTwE18Q+3K99HejSKRlERa6SNWo8LXPY0FkffII found
-Device @admin:localhost:46167/FWnJon5AOy isn't cross-signed
-Device @admin_e2ee_1789035209_66f3:localhost:46167/E2EEADMIN5d3c isn't cross-signed
-Device @e2e_alice_1789035170_f085:localhost:46167/E2EALICEa42e isn't cross-signed
-Device @e2e_bob_1789035179_fce3:localhost:46167/E2EBOB0f48 isn't cross-signed
-Device @e2e_welcome_alice_1789035191_6cf8:localhost:46167/E2EWALICEdd32 isn't cross-signed
-Device @e2e_welcome_bob_1789035192_5266:localhost:46167/E2EWBOB9ece isn't cross-signed
-Failed to decrypt $bDrvpscq5W1OQF_GW0JGIBXdcO2couQfga4X1gRX8EQ: Failed to decrypt megolm event: no session with given ID PXD8qoCDJN0kB5MdTTFNNGXlN89ymgwqynwRGgLxj5A found
-Failed to decrypt $S6xkBucEzhYlqI9U3fj6HlM-hyldQf7tjv49Pt7_HGo: Failed to decrypt megolm event: no session with given ID UTkSFa/5hajh4tFnjJSLAJaK3rZdz4Z3tDdnzlSRyoI found
-Failed to decrypt $8fJyIUlv8NsSGgDIrm9wATsLC868K7bXvc-I6Fgoz_M: Failed to decrypt megolm event: no session with given ID iyVErVe1ec/YYnq/wPUXzNwQesDTSmY6BiF2gqZLAPE found
-Failed to decrypt $CcdmMoKYGZ3xtw8Kr66-lVQh-t8hgPVHnTZDYvql2aM: Failed to decrypt megolm event: no session with given ID 9YJbg+ivO5ZjdLazUnS7fpInnfWiQFGGRBsxcyUw3t0 found
-Failed to decrypt $-6_lYlwrra9_tsnZVs8kd8nYq-Nt8wdb_ZjWIkWgmZc: Failed to decrypt megolm event: no session with given ID MEMR73XTLS594aOfUsIrQzG9/mGZ3EVW1WdhbFC8ZFQ found
-Failed to decrypt $pI9tSpF5tj0stknhw0K9DS0uuJlDG4dRmQgmLkKJ5ek: Failed to decrypt megolm event: no session with given ID yhDZLZxO50cX7SQNFoIKbvTWty31Fust03TYMq7lz0g found
-Device @admin:localhost:46167/FWnJon5AOy isn't cross-signed
+Failed to decrypt $FwDA2Rw63d8p3e19jk-Yoxn44mRopgvOEhjMSl5uhMs: Failed to decrypt megolm event: no session with given ID zs96LVLJLWQkk6skIpFLmP+uFVBusN5bCtqPf2aXZAs found
+Failed to decrypt $KE071QhizjV80d9Nu-xqE7f1C27ZwBlh1rxgvuuD3Ug: Failed to decrypt megolm event: no session with given ID NjBuoH3uib+sc2BiSO4AUkIG+ize9yBGBz395Iv8gEQ found
+Failed to decrypt $ZxkoaPPf1fe5PMENu27DbZ1eJzLNwWZ5tGhKXE-Q9-4: Failed to decrypt megolm event: no session with given ID V6SWxlSjST67EECT7priw6Qo/fRyGTnn/q7MEpV+FHw found
+Failed to decrypt $Dk7veCkZ7ZXs3a7OdXOrqzvBm_IsQyt50mCg8vgRD4Y: Failed to decrypt megolm event: no session with given ID h2CPP6XwT/n7jRK5b8ySvAD9D7BNM1CWHiTgMLhrG80 found
+Failed to decrypt $qDEi4dxcn33KcHMNc7hodPUt2Nx1rDL8SbnGscEr1_c: Failed to decrypt megolm event: no session with given ID uGoQg42HMxbIitQfE+F5TN8d5+VwGKjA8R/1bMH921E found
+Failed to decrypt $JfHKpm0ZVzOawNncIMD-a_sz8oQFbrhO4PIYdWddG6s: Failed to decrypt megolm event: no session with given ID h0JeGNU7umxesnV3aq1JmHgbiN526OBTG1ZqRQ9iSQI found
+Device @admin:localhost:46167/SwAhw7KRuO isn't cross-signed
+Device @admin_e2ee_1789041454_5f4f:localhost:46167/E2EEADMINe697 isn't cross-signed
+Device @e2e_alice_1789041414_f39f:localhost:46167/E2EALICE6bba isn't cross-signed
+Device @e2e_bob_1789041424_8434:localhost:46167/E2EBOB7cc8 isn't cross-signed
+Device @e2e_welcome_alice_1789041436_b829:localhost:46167/E2EWALICE7286 isn't cross-signed
+Device @e2e_welcome_bob_1789041437_b19f:localhost:46167/E2EWBOBd6ba isn't cross-signed
+Failed to decrypt $3hcGYGSXih2O1BiRxoeU_2MDxD278wNE4tynMhvLzfc: Failed to decrypt megolm event: no session with given ID /XOnp44e5uXU7Cw0mQvVK72wGJPP067znLpD0sFYR6E found
+Failed to decrypt $dj_UUarcBuClTP6Ab0E0F8CdLRQ9a02f-OUVdHwbYgY: Failed to decrypt megolm event: no session with given ID tIQUy/z9PsWc7KZAIXz5sp4DwyXqsBLYQyFl4XI+3A8 found
+Failed to decrypt $lYU-0MfLdcYRMc3zeStjMZUrFWWfJduJ63Qg4nPdM7M: Failed to decrypt megolm event: no session with given ID zUhHtlnUeX1K3z+B9Qis9bwyYX9Fe91+H6Mls/YB3Kk found
+Failed to decrypt $fdb8Fc6CbyNV-jT8qdTkqqaNKJ7Szh1NcBS_-RV9fY0: Failed to decrypt megolm event: no session with given ID i18pD2yuoUq/KuqBr6sSB766dcfoF5IEQaUAxHh/LEU found
+Failed to decrypt $FwDA2Rw63d8p3e19jk-Yoxn44mRopgvOEhjMSl5uhMs: Failed to decrypt megolm event: no session with given ID zs96LVLJLWQkk6skIpFLmP+uFVBusN5bCtqPf2aXZAs found
+Failed to decrypt $KE071QhizjV80d9Nu-xqE7f1C27ZwBlh1rxgvuuD3Ug: Failed to decrypt megolm event: no session with given ID NjBuoH3uib+sc2BiSO4AUkIG+ize9yBGBz395Iv8gEQ found
+Failed to decrypt $ZxkoaPPf1fe5PMENu27DbZ1eJzLNwWZ5tGhKXE-Q9-4: Failed to decrypt megolm event: no session with given ID V6SWxlSjST67EECT7priw6Qo/fRyGTnn/q7MEpV+FHw found
+Device @admin:localhost:46167/SwAhw7KRuO isn't cross-signed
 Didn't find cross-signing key master of @admin:localhost:46167
-Failed to decrypt $9ka7cohh1dkfQD0jPRej8LECGKHAraerLDNH5lSywjE: Failed to decrypt megolm event: no session with given ID jPUADNQAHEJVuO6jFrJuYlBYCoeQ55XxAGA1pYlzjmQ found
-Failed to decrypt $47udiYwWgeOZiLvKUZDPSAwRDXdbVFd41gL3IhXc4WQ: Failed to decrypt megolm event: no session with given ID cWD1fKp5KqRw8xcw7x63ASZLLj/l96uN10TL0JrjkkM found
-Failed to decrypt $-vTfDgKDaiWworJAYXtyGchawkLejQXo-MCUIHGKQvM: Failed to decrypt megolm event: no session with given ID d/Uu7tz1/NipS6SXPKAf6G73fFolC2JZ5WMR1jXuWAM found
-Device @e2e_alice_1789035170_f085:localhost:46167/E2EALICEa42e isn't cross-signed
-Didn't find cross-signing key master of @e2e_alice_1789035170_f085:localhost:46167
-Failed to decrypt $cbApGF40ivtABzVhHsg1yTgA6d5L6YPQgLaIU67OxPM: Failed to decrypt megolm event: no session with given ID OtYQkTwE18Q+3K99HejSKRlERa6SNWo8LXPY0FkffII found
-Failed to decrypt $bDrvpscq5W1OQF_GW0JGIBXdcO2couQfga4X1gRX8EQ: Failed to decrypt megolm event: no session with given ID PXD8qoCDJN0kB5MdTTFNNGXlN89ymgwqynwRGgLxj5A found
-Failed to decrypt $S6xkBucEzhYlqI9U3fj6HlM-hyldQf7tjv49Pt7_HGo: Failed to decrypt megolm event: no session with given ID UTkSFa/5hajh4tFnjJSLAJaK3rZdz4Z3tDdnzlSRyoI found
-Device @e2e_bob_1789035179_fce3:localhost:46167/E2EBOB0f48 isn't cross-signed
-Didn't find cross-signing key master of @e2e_bob_1789035179_fce3:localhost:46167
-Failed to decrypt $8fJyIUlv8NsSGgDIrm9wATsLC868K7bXvc-I6Fgoz_M: Failed to decrypt megolm event: no session with given ID iyVErVe1ec/YYnq/wPUXzNwQesDTSmY6BiF2gqZLAPE found
-Failed to decrypt $CcdmMoKYGZ3xtw8Kr66-lVQh-t8hgPVHnTZDYvql2aM: Failed to decrypt megolm event: no session with given ID 9YJbg+ivO5ZjdLazUnS7fpInnfWiQFGGRBsxcyUw3t0 found
-Failed to decrypt $-6_lYlwrra9_tsnZVs8kd8nYq-Nt8wdb_ZjWIkWgmZc: Failed to decrypt megolm event: no session with given ID MEMR73XTLS594aOfUsIrQzG9/mGZ3EVW1WdhbFC8ZFQ found
-Device @e2e_welcome_alice_1789035191_6cf8:localhost:46167/E2EWALICEdd32 isn't cross-signed
-Didn't find cross-signing key master of @e2e_welcome_alice_1789035191_6cf8:localhost:46167
-Failed to decrypt $pI9tSpF5tj0stknhw0K9DS0uuJlDG4dRmQgmLkKJ5ek: Failed to decrypt megolm event: no session with given ID yhDZLZxO50cX7SQNFoIKbvTWty31Fust03TYMq7lz0g found
-Failed to decrypt $9ka7cohh1dkfQD0jPRej8LECGKHAraerLDNH5lSywjE: Failed to decrypt megolm event: no session with given ID jPUADNQAHEJVuO6jFrJuYlBYCoeQ55XxAGA1pYlzjmQ found
-Failed to decrypt $47udiYwWgeOZiLvKUZDPSAwRDXdbVFd41gL3IhXc4WQ: Failed to decrypt megolm event: no session with given ID cWD1fKp5KqRw8xcw7x63ASZLLj/l96uN10TL0JrjkkM found
-Failed to decrypt $-vTfDgKDaiWworJAYXtyGchawkLejQXo-MCUIHGKQvM: Failed to decrypt megolm event: no session with given ID d/Uu7tz1/NipS6SXPKAf6G73fFolC2JZ5WMR1jXuWAM found
-Failed to decrypt $cbApGF40ivtABzVhHsg1yTgA6d5L6YPQgLaIU67OxPM: Failed to decrypt megolm event: no session with given ID OtYQkTwE18Q+3K99HejSKRlERa6SNWo8LXPY0FkffII found
-Failed to decrypt $bDrvpscq5W1OQF_GW0JGIBXdcO2couQfga4X1gRX8EQ: Failed to decrypt megolm event: no session with given ID PXD8qoCDJN0kB5MdTTFNNGXlN89ymgwqynwRGgLxj5A found
-Failed to decrypt $S6xkBucEzhYlqI9U3fj6HlM-hyldQf7tjv49Pt7_HGo: Failed to decrypt megolm event: no session with given ID UTkSFa/5hajh4tFnjJSLAJaK3rZdz4Z3tDdnzlSRyoI found
-Failed to decrypt $8fJyIUlv8NsSGgDIrm9wATsLC868K7bXvc-I6Fgoz_M: Failed to decrypt megolm event: no session with given ID iyVErVe1ec/YYnq/wPUXzNwQesDTSmY6BiF2gqZLAPE found
-Failed to decrypt $CcdmMoKYGZ3xtw8Kr66-lVQh-t8hgPVHnTZDYvql2aM: Failed to decrypt megolm event: no session with given ID 9YJbg+ivO5ZjdLazUnS7fpInnfWiQFGGRBsxcyUw3t0 found
-Failed to decrypt $-6_lYlwrra9_tsnZVs8kd8nYq-Nt8wdb_ZjWIkWgmZc: Failed to decrypt megolm event: no session with given ID MEMR73XTLS594aOfUsIrQzG9/mGZ3EVW1WdhbFC8ZFQ found
-Device @e2e_welcome_bob_1789035192_5266:localhost:46167/E2EWBOB9ece isn't cross-signed
-Didn't find cross-signing key master of @e2e_welcome_bob_1789035192_5266:localhost:46167
-Failed to decrypt $pI9tSpF5tj0stknhw0K9DS0uuJlDG4dRmQgmLkKJ5ek: Failed to decrypt megolm event: no session with given ID yhDZLZxO50cX7SQNFoIKbvTWty31Fust03TYMq7lz0g found
-Failed to decrypt $9ka7cohh1dkfQD0jPRej8LECGKHAraerLDNH5lSywjE: Failed to decrypt megolm event: no session with given ID jPUADNQAHEJVuO6jFrJuYlBYCoeQ55XxAGA1pYlzjmQ found
-Failed to decrypt $47udiYwWgeOZiLvKUZDPSAwRDXdbVFd41gL3IhXc4WQ: Failed to decrypt megolm event: no session with given ID cWD1fKp5KqRw8xcw7x63ASZLLj/l96uN10TL0JrjkkM found
-Failed to decrypt $-vTfDgKDaiWworJAYXtyGchawkLejQXo-MCUIHGKQvM: Failed to decrypt megolm event: no session with given ID d/Uu7tz1/NipS6SXPKAf6G73fFolC2JZ5WMR1jXuWAM found
-Failed to decrypt $cbApGF40ivtABzVhHsg1yTgA6d5L6YPQgLaIU67OxPM: Failed to decrypt megolm event: no session with given ID OtYQkTwE18Q+3K99HejSKRlERa6SNWo8LXPY0FkffII found
-Failed to decrypt $bDrvpscq5W1OQF_GW0JGIBXdcO2couQfga4X1gRX8EQ: Failed to decrypt megolm event: no session with given ID PXD8qoCDJN0kB5MdTTFNNGXlN89ymgwqynwRGgLxj5A found
-Failed to decrypt $S6xkBucEzhYlqI9U3fj6HlM-hyldQf7tjv49Pt7_HGo: Failed to decrypt megolm event: no session with given ID UTkSFa/5hajh4tFnjJSLAJaK3rZdz4Z3tDdnzlSRyoI found
-Failed to decrypt $8fJyIUlv8NsSGgDIrm9wATsLC868K7bXvc-I6Fgoz_M: Failed to decrypt megolm event: no session with given ID iyVErVe1ec/YYnq/wPUXzNwQesDTSmY6BiF2gqZLAPE found
-Failed to decrypt $CcdmMoKYGZ3xtw8Kr66-lVQh-t8hgPVHnTZDYvql2aM: Failed to decrypt megolm event: no session with given ID 9YJbg+ivO5ZjdLazUnS7fpInnfWiQFGGRBsxcyUw3t0 found
-Failed to decrypt $-6_lYlwrra9_tsnZVs8kd8nYq-Nt8wdb_ZjWIkWgmZc: Failed to decrypt megolm event: no session with given ID MEMR73XTLS594aOfUsIrQzG9/mGZ3EVW1WdhbFC8ZFQ found
-Failed to decrypt $pI9tSpF5tj0stknhw0K9DS0uuJlDG4dRmQgmLkKJ5ek: Failed to decrypt megolm event: no session with given ID yhDZLZxO50cX7SQNFoIKbvTWty31Fust03TYMq7lz0g found
-  [PASS] sent encrypted !mint command  (event_id=$2Nsj6csPQBExODLYM9Kk_zxxltvW8kEXzQtWPvhNbe8)
+Failed to decrypt $Dk7veCkZ7ZXs3a7OdXOrqzvBm_IsQyt50mCg8vgRD4Y: Failed to decrypt megolm event: no session with given ID h2CPP6XwT/n7jRK5b8ySvAD9D7BNM1CWHiTgMLhrG80 found
+Failed to decrypt $qDEi4dxcn33KcHMNc7hodPUt2Nx1rDL8SbnGscEr1_c: Failed to decrypt megolm event: no session with given ID uGoQg42HMxbIitQfE+F5TN8d5+VwGKjA8R/1bMH921E found
+Failed to decrypt $JfHKpm0ZVzOawNncIMD-a_sz8oQFbrhO4PIYdWddG6s: Failed to decrypt megolm event: no session with given ID h0JeGNU7umxesnV3aq1JmHgbiN526OBTG1ZqRQ9iSQI found
+Device @e2e_alice_1789041414_f39f:localhost:46167/E2EALICE6bba isn't cross-signed
+Didn't find cross-signing key master of @e2e_alice_1789041414_f39f:localhost:46167
+Failed to decrypt $3hcGYGSXih2O1BiRxoeU_2MDxD278wNE4tynMhvLzfc: Failed to decrypt megolm event: no session with given ID /XOnp44e5uXU7Cw0mQvVK72wGJPP067znLpD0sFYR6E found
+Failed to decrypt $dj_UUarcBuClTP6Ab0E0F8CdLRQ9a02f-OUVdHwbYgY: Failed to decrypt megolm event: no session with given ID tIQUy/z9PsWc7KZAIXz5sp4DwyXqsBLYQyFl4XI+3A8 found
+Failed to decrypt $lYU-0MfLdcYRMc3zeStjMZUrFWWfJduJ63Qg4nPdM7M: Failed to decrypt megolm event: no session with given ID zUhHtlnUeX1K3z+B9Qis9bwyYX9Fe91+H6Mls/YB3Kk found
+Device @e2e_bob_1789041424_8434:localhost:46167/E2EBOB7cc8 isn't cross-signed
+Didn't find cross-signing key master of @e2e_bob_1789041424_8434:localhost:46167
+Failed to decrypt $fdb8Fc6CbyNV-jT8qdTkqqaNKJ7Szh1NcBS_-RV9fY0: Failed to decrypt megolm event: no session with given ID i18pD2yuoUq/KuqBr6sSB766dcfoF5IEQaUAxHh/LEU found
+Failed to decrypt $FwDA2Rw63d8p3e19jk-Yoxn44mRopgvOEhjMSl5uhMs: Failed to decrypt megolm event: no session with given ID zs96LVLJLWQkk6skIpFLmP+uFVBusN5bCtqPf2aXZAs found
+Failed to decrypt $KE071QhizjV80d9Nu-xqE7f1C27ZwBlh1rxgvuuD3Ug: Failed to decrypt megolm event: no session with given ID NjBuoH3uib+sc2BiSO4AUkIG+ize9yBGBz395Iv8gEQ found
+Device @e2e_welcome_alice_1789041436_b829:localhost:46167/E2EWALICE7286 isn't cross-signed
+Didn't find cross-signing key master of @e2e_welcome_alice_1789041436_b829:localhost:46167
+Failed to decrypt $ZxkoaPPf1fe5PMENu27DbZ1eJzLNwWZ5tGhKXE-Q9-4: Failed to decrypt megolm event: no session with given ID V6SWxlSjST67EECT7priw6Qo/fRyGTnn/q7MEpV+FHw found
+Failed to decrypt $Dk7veCkZ7ZXs3a7OdXOrqzvBm_IsQyt50mCg8vgRD4Y: Failed to decrypt megolm event: no session with given ID h2CPP6XwT/n7jRK5b8ySvAD9D7BNM1CWHiTgMLhrG80 found
+Failed to decrypt $qDEi4dxcn33KcHMNc7hodPUt2Nx1rDL8SbnGscEr1_c: Failed to decrypt megolm event: no session with given ID uGoQg42HMxbIitQfE+F5TN8d5+VwGKjA8R/1bMH921E found
+Device @e2e_welcome_bob_1789041437_b19f:localhost:46167/E2EWBOBd6ba isn't cross-signed
+Didn't find cross-signing key master of @e2e_welcome_bob_1789041437_b19f:localhost:46167
+Failed to decrypt $JfHKpm0ZVzOawNncIMD-a_sz8oQFbrhO4PIYdWddG6s: Failed to decrypt megolm event: no session with given ID h0JeGNU7umxesnV3aq1JmHgbiN526OBTG1ZqRQ9iSQI found
+Failed to decrypt $3hcGYGSXih2O1BiRxoeU_2MDxD278wNE4tynMhvLzfc: Failed to decrypt megolm event: no session with given ID /XOnp44e5uXU7Cw0mQvVK72wGJPP067znLpD0sFYR6E found
+Failed to decrypt $dj_UUarcBuClTP6Ab0E0F8CdLRQ9a02f-OUVdHwbYgY: Failed to decrypt megolm event: no session with given ID tIQUy/z9PsWc7KZAIXz5sp4DwyXqsBLYQyFl4XI+3A8 found
+Failed to decrypt $lYU-0MfLdcYRMc3zeStjMZUrFWWfJduJ63Qg4nPdM7M: Failed to decrypt megolm event: no session with given ID zUhHtlnUeX1K3z+B9Qis9bwyYX9Fe91+H6Mls/YB3Kk found
+Failed to decrypt $fdb8Fc6CbyNV-jT8qdTkqqaNKJ7Szh1NcBS_-RV9fY0: Failed to decrypt megolm event: no session with given ID i18pD2yuoUq/KuqBr6sSB766dcfoF5IEQaUAxHh/LEU found
+  [PASS] sent encrypted !mint command  (event_id=$7ZlVOHKjLK0mFFj05PXnPTw6BXYjaJmVjNSnoXVCS9Q)
+Failed to decrypt $FwDA2Rw63d8p3e19jk-Yoxn44mRopgvOEhjMSl5uhMs: Failed to decrypt megolm event: no session with given ID zs96LVLJLWQkk6skIpFLmP+uFVBusN5bCtqPf2aXZAs found
+Failed to decrypt $KE071QhizjV80d9Nu-xqE7f1C27ZwBlh1rxgvuuD3Ug: Failed to decrypt megolm event: no session with given ID NjBuoH3uib+sc2BiSO4AUkIG+ize9yBGBz395Iv8gEQ found
+Failed to decrypt $ZxkoaPPf1fe5PMENu27DbZ1eJzLNwWZ5tGhKXE-Q9-4: Failed to decrypt megolm event: no session with given ID V6SWxlSjST67EECT7priw6Qo/fRyGTnn/q7MEpV+FHw found
+Failed to decrypt $Dk7veCkZ7ZXs3a7OdXOrqzvBm_IsQyt50mCg8vgRD4Y: Failed to decrypt megolm event: no session with given ID h2CPP6XwT/n7jRK5b8ySvAD9D7BNM1CWHiTgMLhrG80 found
+Failed to decrypt $qDEi4dxcn33KcHMNc7hodPUt2Nx1rDL8SbnGscEr1_c: Failed to decrypt megolm event: no session with given ID uGoQg42HMxbIitQfE+F5TN8d5+VwGKjA8R/1bMH921E found
+Failed to decrypt $JfHKpm0ZVzOawNncIMD-a_sz8oQFbrhO4PIYdWddG6s: Failed to decrypt megolm event: no session with given ID h0JeGNU7umxesnV3aq1JmHgbiN526OBTG1ZqRQ9iSQI found
+Failed to decrypt $3hcGYGSXih2O1BiRxoeU_2MDxD278wNE4tynMhvLzfc: Failed to decrypt megolm event: no session with given ID /XOnp44e5uXU7Cw0mQvVK72wGJPP067znLpD0sFYR6E found
+Failed to decrypt $dj_UUarcBuClTP6Ab0E0F8CdLRQ9a02f-OUVdHwbYgY: Failed to decrypt megolm event: no session with given ID tIQUy/z9PsWc7KZAIXz5sp4DwyXqsBLYQyFl4XI+3A8 found
+Failed to decrypt $lYU-0MfLdcYRMc3zeStjMZUrFWWfJduJ63Qg4nPdM7M: Failed to decrypt megolm event: no session with given ID zUhHtlnUeX1K3z+B9Qis9bwyYX9Fe91+H6Mls/YB3Kk found
+Failed to decrypt $fdb8Fc6CbyNV-jT8qdTkqqaNKJ7Szh1NcBS_-RV9fY0: Failed to decrypt megolm event: no session with given ID i18pD2yuoUq/KuqBr6sSB766dcfoF5IEQaUAxHh/LEU found
+Failed to decrypt $FwDA2Rw63d8p3e19jk-Yoxn44mRopgvOEhjMSl5uhMs: Failed to decrypt megolm event: no session with given ID zs96LVLJLWQkk6skIpFLmP+uFVBusN5bCtqPf2aXZAs found
+Failed to decrypt $KE071QhizjV80d9Nu-xqE7f1C27ZwBlh1rxgvuuD3Ug: Failed to decrypt megolm event: no session with given ID NjBuoH3uib+sc2BiSO4AUkIG+ize9yBGBz395Iv8gEQ found
+Failed to decrypt $ZxkoaPPf1fe5PMENu27DbZ1eJzLNwWZ5tGhKXE-Q9-4: Failed to decrypt megolm event: no session with given ID V6SWxlSjST67EECT7priw6Qo/fRyGTnn/q7MEpV+FHw found
+Failed to decrypt $Dk7veCkZ7ZXs3a7OdXOrqzvBm_IsQyt50mCg8vgRD4Y: Failed to decrypt megolm event: no session with given ID h2CPP6XwT/n7jRK5b8ySvAD9D7BNM1CWHiTgMLhrG80 found
+Failed to decrypt $qDEi4dxcn33KcHMNc7hodPUt2Nx1rDL8SbnGscEr1_c: Failed to decrypt megolm event: no session with given ID uGoQg42HMxbIitQfE+F5TN8d5+VwGKjA8R/1bMH921E found
+Failed to decrypt $JfHKpm0ZVzOawNncIMD-a_sz8oQFbrhO4PIYdWddG6s: Failed to decrypt megolm event: no session with given ID h0JeGNU7umxesnV3aq1JmHgbiN526OBTG1ZqRQ9iSQI found
+Failed to decrypt $3hcGYGSXih2O1BiRxoeU_2MDxD278wNE4tynMhvLzfc: Failed to decrypt megolm event: no session with given ID /XOnp44e5uXU7Cw0mQvVK72wGJPP067znLpD0sFYR6E found
 Didn't find cross-signing key master of @admin:localhost:46167
-[admin_e2ee] received from @admin:localhost:46167: '@admin_e2ee_1789035209_66f3:localhost:46167: refused — admin commands require a cross-signing-verifi'
-  [PASS] bot refused unverified encrypted !mint  (body[:120]='@admin_e2ee_1789035209_66f3:localhost:46167: refused — admin commands require a cross-signing-verified device' ; all_seen=[('@admin:localhost:46167', '@admin_e2ee_1789035209_66f3:localhost:46167: refused — admin commands require a cross-signing-verified device')])
+[admin_e2ee] received from @admin:localhost:46167: '@admin_e2ee_1789041454_5f4f:localhost:46167: refused — admin commands require a cross-signing-verifi'
+  [PASS] bot refused unverified encrypted !mint  (body[:120]='@admin_e2ee_1789041454_5f4f:localhost:46167: refused — admin commands require a cross-signing-verified device' ; all_seen=[('@admin:localhost:46167', '@admin_e2ee_1789041454_5f4f:localhost:46167: refused — admin commands require a cross-signing-verified device')])
   [PASS] unverified command did not mint a code
 
 === 7/7 pass ===
 Unclosed client session
-client_session: <aiohttp.client.ClientSession object at 0x7f43790e2550>
+client_session: <aiohttp.client.ClientSession object at 0x7efdbb76ac90>
 Unclosed connector
-connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f43790f4650>, 33033949.51398404)])']
-connector: <aiohttp.connector.TCPConnector object at 0x7f43790e2590>
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7efdbb77c650>, 33040194.703329775)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7efdbb76ac10>
 [runner] === retention_room_e2e.py ===
-[retention_e2e] bot=@ret_bot_f05d8c:localhost:46167 member=@ret_member_f05d8c:localhost:46167 attacker=@ret_atk_f05d8c:localhost:46167
-  [PASS] 1a. room created via factory (command core)  (room=!GEeUcDwRlZjrHLZ4HA:localhost:46167)
-  [PASS] 1b. !retention-room command wrapper creates a room + replies  (reply='created retention room !UC5kDFJ7TYFhQcVyQ5:localhost:46167\n  name:   ops-chat\n  ')
+[retention_e2e] bot=@ret_bot_94021f:localhost:46167 member=@ret_member_94021f:localhost:46167 attacker=@ret_atk_94021f:localhost:46167
+  [PASS] 1a. room created via factory (command core)  (room=!jO6wMd69Dxm8e7aE2r:localhost:46167)
+  [PASS] 1b. !retention-room command wrapper creates a room + replies  (reply='created retention room !7pz4Rbwv7ACshbVl2N:localhost:46167\n  name:   ops-chat\n  ')
   [PASS] 1c. !retention-room rejects missing args  (reply='usage: !retention-room <name> <duration>   (e.g. !retention-')
   [PASS] 1d. !retention-room rejects a bad duration  (reply="!retention-room: bad duration 'bogus': expected a number")
   [PASS] 2a. power_levels readable  (status=200)
   [PASS] 2b. bot is PL100  (bot_pl=100)
-  [PASS] 2c. no other user at >=50 (bot is sole PL100)  (ge50={'@ret_bot_f05d8c:localhost:46167': 100})
+  [PASS] 2c. no other user at >=50 (bot is sole PL100)  (ge50={'@ret_bot_94021f:localhost:46167': 100})
   [PASS] 2d. users_default == 0  (users_default=0)
   [PASS] 3a. m.room.encryption present (megolm)  (200 {'algorithm': 'm.megolm.v1.aes-sha2'})
   [PASS] 3b. m.room.retention present with window (ms)  (200 {'max_lifetime': 604800000})
-  [PASS] 4a. exactly one event pinned  (pinned=['$UeykdPCWUwAa6WZiN03L-66n7iBtyPrQe-rHiVn7MBE'])
+  [PASS] 4a. exactly one event pinned  (pinned=['$xQ8pQ7_4bXIjvh8nMBhXhB5ARCU_-qdeKYW9ZXuawGI'])
   [PASS] 4b. pinned text mentions the configured window  (label='1w' body[:80]='📜 Retention policy — immutable at room creation\n\nRoom: standup\nPolicy window: 1w')
   [PASS] 4c. pinned text is honest (states what it does NOT do)  (body[:120]='📜 Retention policy — immutable at room creation\n\nRoom: standup\nPolicy window: 1w (604800s)\n\nWhat this DOES: the bot (sol')
   [PASS] 4d. pinned text equals bot policy_text for this window
   [PASS] 5a. room is linked as a space child (m.space.child present)  (200 {'via': ['landing:80']})
-  [PASS] 5b. join_rule restricted to the space  ({'allow': [{'room_id': '!2Rj0xAa-8glpnZt5BTtt7WjMBe7NW9xf4OwfeFft6UY', 'type': 'm.room_membership'}], 'join_rule': 'restricted'})
+  [PASS] 5b. join_rule restricted to the space  ({'allow': [{'room_id': '!XdyedeSvSSI7Tjhc8sAzBxSN3Ub_EcQ-kVKaKF3ehNs', 'type': 'm.room_membership'}], 'join_rule': 'restricted'})
   [PASS] 5c. space member joined retention room with NO invite  (status=200)
   [PASS] 6a. elevated attacker to PL100 (simulated)  (status=200)
-  [PASS] 6b. attacker PUT of m.room.retention accepted by server  (status=200 body={'event_id': '$y-x5vwKl4zT-FL-VK_clg0Ma6PR6eOTErh_N08OoEMc'})
+  [PASS] 6b. attacker PUT of m.room.retention accepted by server  (status=200 body={'event_id': '$7JBi95cD3BTF_4jqvsN3cBlQ3aKen1BQjwUelTSz0sg'})
   [PASS] 6c. room state DID change (proves the PUT landed)  (room_state={'max_lifetime': 86400000})
   [PASS] 6d. bot in-force window UNCHANGED (immutable store)  (in_force_window=604800 in_force_ms=604800000)
 
 === 21/21 pass ===
 [runner] === escrow_durability.py ===
-[escrow] bot=@esc_bot_1789035242_45db:localhost:46167 (devs BOT_A_9be2 -> BOT_B_147a) alice=@esc_alice_1789035242_45db:localhost:46167
-[escrow] room=!xstseB_t2Ond63QIy_bseMhPOLW2SSMbmueL5nBGykI
-Device @esc_alice_1789035242_45db:localhost:46167/ALICE80a0 isn't cross-signed
-Device @esc_bot_1789035242_45db:localhost:46167/BOT_A_9be2 isn't cross-signed
-Device @esc_bot_1789035242_45db:localhost:46167/BOT_A_9be2 isn't cross-signed
-Didn't find cross-signing key master of @esc_bot_1789035242_45db:localhost:46167
-[escrow] pre-wipe msg id=$4nRf_x_SGNXto6og0yqpgi5itj6o4IHbD0ZA2jr5eUA body='history-must-survive-f5c9b088'
-Device @esc_alice_1789035242_45db:localhost:46167/ALICE80a0 isn't cross-signed
-Device @esc_alice_1789035242_45db:localhost:46167/ALICE80a0 isn't cross-signed
-Didn't find cross-signing key master of @esc_alice_1789035242_45db:localhost:46167
+[escrow] bot=@esc_bot_1789041487_a429:localhost:46167 (devs BOT_A_c787 -> BOT_B_e322) alice=@esc_alice_1789041487_a429:localhost:46167
+[escrow] room=!3zb4WNkEMyEMMsrSrOiSWJe8xbUPO8a11tySRBTtHwo
+Device @esc_alice_1789041487_a429:localhost:46167/ALICEb817 isn't cross-signed
+Device @esc_bot_1789041487_a429:localhost:46167/BOT_A_c787 isn't cross-signed
+Device @esc_bot_1789041487_a429:localhost:46167/BOT_A_c787 isn't cross-signed
+Didn't find cross-signing key master of @esc_bot_1789041487_a429:localhost:46167
+[escrow] pre-wipe msg id=$Rdu9AuzLAx0hxHJYN8UgdunDWqvgfM0CTOh0lFK8eys body='history-must-survive-7df566ca'
+Device @esc_alice_1789041487_a429:localhost:46167/ALICEb817 isn't cross-signed
+Device @esc_alice_1789041487_a429:localhost:46167/ALICEb817 isn't cross-signed
+Didn't find cross-signing key master of @esc_alice_1789041487_a429:localhost:46167
   [PASS] bot device A decrypts the message (inbound session present)
   [PASS] export_inbound_sessions dumps the inbound megolm session(s)  (1 session(s) -> inbound_sessions.escrow.json)
-[self-heal] removed /tmp/escrow_1789035242_45db/bot_crypto.db
+[self-heal] removed /tmp/escrow_1789041487_a429/bot_crypto.db
   [PASS] _wipe_crypto_store deletes bot_crypto.db  (fresh store on next open)
   [PASS] without escrow, wiped store cannot decrypt (the bug #60 fixes)  (SessionNotFound after wipe)
-[self-heal] removed /tmp/escrow_1789035242_45db/bot_crypto.db
-  [PASS] re-mint logs the bot in under a NEW device_id  (BOT_A_9be2 -> BOT_B_147a)
+[self-heal] removed /tmp/escrow_1789041487_a429/bot_crypto.db
+  [PASS] re-mint logs the bot in under a NEW device_id  (BOT_A_c787 -> BOT_B_e322)
   [PASS] import_inbound_sessions restores the escrowed session(s)  (1/1 restored)
-Device @esc_alice_1789035242_45db:localhost:46167/ALICE80a0 isn't cross-signed
-Device @esc_alice_1789035242_45db:localhost:46167/ALICE80a0 isn't cross-signed
-Didn't find cross-signing key master of @esc_alice_1789035242_45db:localhost:46167
-  [PASS] re-minted bot (new device) decrypts the pre-wipe message  (body='history-must-survive-f5c9b088')
+Device @esc_alice_1789041487_a429:localhost:46167/ALICEb817 isn't cross-signed
+Device @esc_alice_1789041487_a429:localhost:46167/ALICEb817 isn't cross-signed
+Didn't find cross-signing key master of @esc_alice_1789041487_a429:localhost:46167
+  [PASS] re-minted bot (new device) decrypts the pre-wipe message  (body='history-must-survive-7df566ca')
   [PASS] escrow file is retained after import (durable across wipes)
 
 [escrow] 8/8 checks passed
 [runner] === history_bundle_e2e.py ===
-Device @bundle_alice_33033950_906f:localhost:46167/BALICEf11c isn't cross-signed
-Device @bundle_bot_33033950_906f:localhost:46167/BBOT3a7f isn't cross-signed
-Device @bundle_carol_33033950_906f:localhost:46167/BCAROL5167 isn't cross-signed
-Device @bundle_bot_33033950_906f:localhost:46167/BBOT3a7f isn't cross-signed
-Didn't find cross-signing key master of @bundle_bot_33033950_906f:localhost:46167
-Device @bundle_carol_33033950_906f:localhost:46167/BCAROL5167 isn't cross-signed
-Didn't find cross-signing key master of @bundle_carol_33033950_906f:localhost:46167
-Device @bundle_alice_33033950_906f:localhost:46167/BALICEf11c isn't cross-signed
-Device @bundle_bot_33033950_906f:localhost:46167/BBOT3a7f isn't cross-signed
-Device @bundle_carol_33033950_906f:localhost:46167/BCAROL5167 isn't cross-signed
-Device @bundle_alice_33033950_906f:localhost:46167/BALICEf11c isn't cross-signed
-Didn't find cross-signing key master of @bundle_alice_33033950_906f:localhost:46167
-Device @bundle_bot_33033950_906f:localhost:46167/BBOT3a7f isn't cross-signed
-Didn't find cross-signing key master of @bundle_bot_33033950_906f:localhost:46167
-Device @bundle_alice_33033950_906f:localhost:46167/BALICEf11c isn't cross-signed
-Device @bundle_carol_33033950_906f:localhost:46167/BCAROL5167 isn't cross-signed
-Device @bundle_alice_33033950_906f:localhost:46167/BALICEf11c isn't cross-signed
-Didn't find cross-signing key master of @bundle_alice_33033950_906f:localhost:46167
-Device @bundle_carol_33033950_906f:localhost:46167/BCAROL5167 isn't cross-signed
-Didn't find cross-signing key master of @bundle_carol_33033950_906f:localhost:46167
-Failed to decrypt $xYRWcRnUfGr1tu_JXRR4XDyEICwC1yPhy-aY03OoTa8: Failed to decrypt megolm event: no session with given ID lJUwKkq/qPFshFXzcE+JmsYCwyf/yZGfZ0wiZvyahDA found
-Failed to decrypt $Fg_-u7zwGLo_NZ4--e39kEfrBXYHCnJtFw3iSv_rFeQ: Failed to decrypt megolm event: no session with given ID 7VLNGtR7kSS8kC1uYiiH6Om97LJ29Z51lhLEfuthllI found
-Device @bundle_alice_33033950_906f:localhost:46167/BALICEf11c isn't cross-signed
-Device @bundle_alice_33033950_906f:localhost:46167/BALICEf11c isn't cross-signed
-Didn't find cross-signing key master of @bundle_alice_33033950_906f:localhost:46167
-Device @bundle_carol_33033950_906f:localhost:46167/BCAROL5167 isn't cross-signed
-Device @bundle_carol_33033950_906f:localhost:46167/BCAROL5167 isn't cross-signed
-Didn't find cross-signing key master of @bundle_carol_33033950_906f:localhost:46167
+Device @bundle_alice_33040196_9620:localhost:46167/BALICE5dd1 isn't cross-signed
+Device @bundle_bot_33040196_9620:localhost:46167/BBOT504e isn't cross-signed
+Device @bundle_carol_33040196_9620:localhost:46167/BCAROL7cb0 isn't cross-signed
+Device @bundle_bot_33040196_9620:localhost:46167/BBOT504e isn't cross-signed
+Didn't find cross-signing key master of @bundle_bot_33040196_9620:localhost:46167
+Device @bundle_carol_33040196_9620:localhost:46167/BCAROL7cb0 isn't cross-signed
+Didn't find cross-signing key master of @bundle_carol_33040196_9620:localhost:46167
+Device @bundle_alice_33040196_9620:localhost:46167/BALICE5dd1 isn't cross-signed
+Device @bundle_bot_33040196_9620:localhost:46167/BBOT504e isn't cross-signed
+Device @bundle_carol_33040196_9620:localhost:46167/BCAROL7cb0 isn't cross-signed
+Device @bundle_alice_33040196_9620:localhost:46167/BALICE5dd1 isn't cross-signed
+Didn't find cross-signing key master of @bundle_alice_33040196_9620:localhost:46167
+Device @bundle_bot_33040196_9620:localhost:46167/BBOT504e isn't cross-signed
+Didn't find cross-signing key master of @bundle_bot_33040196_9620:localhost:46167
+Device @bundle_alice_33040196_9620:localhost:46167/BALICE5dd1 isn't cross-signed
+Device @bundle_carol_33040196_9620:localhost:46167/BCAROL7cb0 isn't cross-signed
+Device @bundle_alice_33040196_9620:localhost:46167/BALICE5dd1 isn't cross-signed
+Didn't find cross-signing key master of @bundle_alice_33040196_9620:localhost:46167
+Device @bundle_carol_33040196_9620:localhost:46167/BCAROL7cb0 isn't cross-signed
+Didn't find cross-signing key master of @bundle_carol_33040196_9620:localhost:46167
+Failed to decrypt $g-2XFObrkm85wPURRmNISoUpxZMRypuZ-t5MyUs533o: Failed to decrypt megolm event: no session with given ID RRfuySt8f0Cj/SFYX1eDZpl4EOKzUkwABLgPyaLnq/U found
+Failed to decrypt $isALLhlE5UEqV80C243YGScPNEeMK-ayJaKhT3f56hM: Failed to decrypt megolm event: no session with given ID ivd8SdHuPPdao2yk/LD9MSH/K9D41D9kTtP6lTlDiYE found
+Device @bundle_alice_33040196_9620:localhost:46167/BALICE5dd1 isn't cross-signed
+Device @bundle_alice_33040196_9620:localhost:46167/BALICE5dd1 isn't cross-signed
+Didn't find cross-signing key master of @bundle_alice_33040196_9620:localhost:46167
+Device @bundle_carol_33040196_9620:localhost:46167/BCAROL7cb0 isn't cross-signed
+Device @bundle_carol_33040196_9620:localhost:46167/BCAROL7cb0 isn't cross-signed
+Didn't find cross-signing key master of @bundle_carol_33040196_9620:localhost:46167
 MSC4268 bundle round-trip: 2 sessions exported, uploaded, downloaded, imported, decrypted
 Unclosed client session
-client_session: <aiohttp.client.ClientSession object at 0x7f0ed24af250>
+client_session: <aiohttp.client.ClientSession object at 0x7f116de97e10>
 Unclosed connector
-connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f0ed24c51d0>, 33033951.23794716)])']
-connector: <aiohttp.connector.TCPConnector object at 0x7f0ed24ac910>
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f116dea91d0>, 33040196.37719066)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7f116de975d0>
 Unclosed client session
-client_session: <aiohttp.client.ClientSession object at 0x7f0ed2ec2f50>
+client_session: <aiohttp.client.ClientSession object at 0x7f116de40c10>
 Unclosed client session
-client_session: <aiohttp.client.ClientSession object at 0x7f0ed24e1d50>
+client_session: <aiohttp.client.ClientSession object at 0x7f116e1b2a90>
 Unclosed connector
-connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f0ed24976d0>, 33033951.275256563)])']
-connector: <aiohttp.connector.TCPConnector object at 0x7f0ed24d0410>
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f116de776d0>, 33040196.416099433)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7f116deae210>
 Unclosed connector
-connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f0ed2497bd0>, 33033957.29172465), (<aiohttp.client_proto.ResponseHandler object at 0x7f0ed24c6250>, 33033960.297468785)])']
-connector: <aiohttp.connector.TCPConnector object at 0x7f0ed24e3b10>
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f116de77bd0>, 33040202.428522736), (<aiohttp.client_proto.ResponseHandler object at 0x7f116dea8d50>, 33040205.431230303)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7f116e199250>
 Unclosed client session
-client_session: <aiohttp.client.ClientSession object at 0x7f0ec342a010>
+client_session: <aiohttp.client.ClientSession object at 0x7f117013d850>
 Unclosed connector
-connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f0ec3438ad0>, 33033960.45081811)])']
-connector: <aiohttp.connector.TCPConnector object at 0x7f0ed00a2050>
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f116c148ad0>, 33040205.571968332)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7f116decc8d0>
 [runner] === sas_e2e.py === (informational; failures don't gate the PR)
-bot=@bot_1789035252:localhost:46167 verifier=@ver_1789035252:localhost:46167
-bot pid=62 log=/tmp/sas_e2e_1789035252/responder.log
-verifier sent .start tx=t-110e0530fe98
+bot=@bot_1789041497:localhost:46167 verifier=@ver_1789041497:localhost:46167
+bot pid=64 log=/tmp/sas_e2e_1789041497/responder.log
+verifier sent .start tx=t-a37bebb0b6f8
 result: success=True trust=verified cancel_reason=None
 PASS
 [runner] sas_e2e: PASS
 [runner] === history_bundle_responder_e2e.py ===
-mau.crypto: Device @bundle_alice_3f40a464:localhost:46167/AL3f40a464 isn't cross-signed
-mau.crypto: Device @bundle_bot_3f40a464:localhost:46167/BO3f40a464 isn't cross-signed
-mau.crypto: Device @bundle_bot_3f40a464:localhost:46167/BO3f40a464 isn't cross-signed
-mau.crypto: Didn't find cross-signing key master of @bundle_bot_3f40a464:localhost:46167
-mau.crypto: Group session BcJUId7PCpTEQ0ZMO1zDd8KyaFvrCaQymp0opSQC8t4 for !ChAPjHsN8RGlyoQbKykOtKwPtIWJFWrNTcOefUZs3PU successfully shared
-mau.crypto: Device @bundle_alice_3f40a464:localhost:46167/AL3f40a464 isn't cross-signed
-joined invite !ChAPjHsN8RGlyoQbKykOtKwPtIWJFWrNTcOefUZs3PU
-mau.crypto: Device @bundle_alice_3f40a464:localhost:46167/AL3f40a464 isn't cross-signed
-mau.crypto: Didn't find cross-signing key master of @bundle_alice_3f40a464:localhost:46167
-mau.crypto: Device @bundle_bob_3f40a464:localhost:46167/BB3f40a464 isn't cross-signed
-shape-rotator.responder: imported 1 room key sessions from inviter=@bundle_bot_3f40a464:localhost:46167 room=!ChAPjHsN8RGlyoQbKykOtKwPtIWJFWrNTcOefUZs3PU
-shape-rotator.responder: rejected m.room_key_bundle from non-inviter sender=@outsider:localhost room=!ChAPjHsN8RGlyoQbKykOtKwPtIWJFWrNTcOefUZs3PU inviter=@bundle_bot_3f40a464:localhost:46167
-mau.crypto: Device @bundle_alice_3f40a464:localhost:46167/AL3f40a464 isn't cross-signed
-mau.crypto: Device @bundle_alice_3f40a464:localhost:46167/AL3f40a464 isn't cross-signed
-mau.crypto: Didn't find cross-signing key master of @bundle_alice_3f40a464:localhost:46167
+mau.crypto: Device @bundle_alice_9fcf6917:localhost:46167/AL9fcf6917 isn't cross-signed
+mau.crypto: Device @bundle_bot_9fcf6917:localhost:46167/BO9fcf6917 isn't cross-signed
+mau.crypto: Device @bundle_bot_9fcf6917:localhost:46167/BO9fcf6917 isn't cross-signed
+mau.crypto: Didn't find cross-signing key master of @bundle_bot_9fcf6917:localhost:46167
+mau.crypto: Group session AmDwGH+BilJeAP6xljgInZqNqwVqyHnGNgLe6E1e5sE for !dUM5rM-kAqvyOvkiSt2Bx8kFzyfWEDulg7_yGId2zQw successfully shared
+mau.crypto: Device @bundle_alice_9fcf6917:localhost:46167/AL9fcf6917 isn't cross-signed
+joined invite !dUM5rM-kAqvyOvkiSt2Bx8kFzyfWEDulg7_yGId2zQw
+mau.crypto: Device @bundle_alice_9fcf6917:localhost:46167/AL9fcf6917 isn't cross-signed
+mau.crypto: Didn't find cross-signing key master of @bundle_alice_9fcf6917:localhost:46167
+mau.crypto: Device @bundle_bob_9fcf6917:localhost:46167/BB9fcf6917 isn't cross-signed
+shape-rotator.responder: imported 1 room key sessions from inviter=@bundle_bot_9fcf6917:localhost:46167 room=!dUM5rM-kAqvyOvkiSt2Bx8kFzyfWEDulg7_yGId2zQw
+shape-rotator.responder: rejected m.room_key_bundle from non-inviter sender=@outsider:localhost room=!dUM5rM-kAqvyOvkiSt2Bx8kFzyfWEDulg7_yGId2zQw inviter=@bundle_bot_9fcf6917:localhost:46167
+mau.crypto: Device @bundle_alice_9fcf6917:localhost:46167/AL9fcf6917 isn't cross-signed
+mau.crypto: Device @bundle_alice_9fcf6917:localhost:46167/AL9fcf6917 isn't cross-signed
+mau.crypto: Didn't find cross-signing key master of @bundle_alice_9fcf6917:localhost:46167
 MSC4268 responder E2E: inviter bundle imported; outsider rejected; pre-join message decrypted
 asyncio: Unclosed client session
-client_session: <aiohttp.client.ClientSession object at 0x7f95b97c9d10>
+client_session: <aiohttp.client.ClientSession object at 0x7f242f01cbd0>
 asyncio: Unclosed client session
-client_session: <aiohttp.client.ClientSession object at 0x7f95b97dff50>
+client_session: <aiohttp.client.ClientSession object at 0x7f242f02fc10>
 asyncio: Unclosed connector
-connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f95b97da150>, 33033967.62259087)])']
-connector: <aiohttp.connector.TCPConnector object at 0x7f95b97c98d0>
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f242f02a150>, 33040212.704445604)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7f242f01d810>
 asyncio: Unclosed connector
-connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f95b97dbd50>, 33033967.654904544)])']
-connector: <aiohttp.connector.TCPConnector object at 0x7f95b97d01d0>
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f242f02bd50>, 33040212.740900964)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7f242f02fdd0>
 asyncio: Unclosed client session
-client_session: <aiohttp.client.ClientSession object at 0x7f95b97d1d10>
+client_session: <aiohttp.client.ClientSession object at 0x7f242f021b90>
 asyncio: Unclosed connector
-connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f95b97d9dd0>, 33033967.670182977)])']
-connector: <aiohttp.connector.TCPConnector object at 0x7f95b97d1e90>
+connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f242f029dd0>, 33040212.76675668)])']
+connector: <aiohttp.connector.TCPConnector object at 0x7f242f021d10>
 [runner] === history_bundle_invite_e2e.py ===
-[invite-e2e] alice=@inv_alice_1789035260_7352:localhost:46167 bot=@inv_bot_1789035260_7352:localhost:46167
-[invite-e2e] room=!6-C3FnBefsGPXKHfVz_JWW8yR4ivV6q7PEmNX32Ixa4
-Device @inv_alice_1789035260_7352:localhost:46167/AL03f2 isn't cross-signed
-Device @inv_bot_1789035260_7352:localhost:46167/BOTbfa1 isn't cross-signed
-Device @inv_bot_1789035260_7352:localhost:46167/BOTbfa1 isn't cross-signed
-Didn't find cross-signing key master of @inv_bot_1789035260_7352:localhost:46167
-Device @inv_alice_1789035260_7352:localhost:46167/AL03f2 isn't cross-signed
-Device @inv_alice_1789035260_7352:localhost:46167/AL03f2 isn't cross-signed
-Didn't find cross-signing key master of @inv_alice_1789035260_7352:localhost:46167
-Didn't find cross-signing key master of @inv_alice_1789035260_7352:localhost:46167
+[invite-e2e] alice=@inv_alice_1789041505_99a4:localhost:46167 bot=@inv_bot_1789041505_99a4:localhost:46167
+[invite-e2e] room=!iu9_l7FaSHe6a4MBY0iSga8NommRlD7GAULrJMBTnJA
+Device @inv_alice_1789041505_99a4:localhost:46167/ALb4bd isn't cross-signed
+Device @inv_bot_1789041505_99a4:localhost:46167/BOT71a2 isn't cross-signed
+Device @inv_bot_1789041505_99a4:localhost:46167/BOT71a2 isn't cross-signed
+Didn't find cross-signing key master of @inv_bot_1789041505_99a4:localhost:46167
+Device @inv_alice_1789041505_99a4:localhost:46167/ALb4bd isn't cross-signed
+Device @inv_alice_1789041505_99a4:localhost:46167/ALb4bd isn't cross-signed
+Didn't find cross-signing key master of @inv_alice_1789041505_99a4:localhost:46167
+Didn't find cross-signing key master of @inv_alice_1789041505_99a4:localhost:46167
   [PASS] bot decrypts alice's pre-invite message (inbound session present)
-  [PASS] endorser resolved from the code's minted_by  (@inv_alice_1789035260_7352:localhost:46167)
-mau.crypto: Device @inv_bob_1789035260_7352:localhost:46167/BBb98f isn't cross-signed
-[room_key_bundle] sent to 1 device(s) of @inv_bob_1789035260_7352:localhost:46167 for room=!6-C3FnBefsGPXKHfVz_JWW8yR4ivV6q7PEmNX32Ixa4
-  [PASS] approver._invite_to_children invited the child room  (['!6-C3FnBefsGPXKHfVz_JWW8yR4ivV6q7PEmNX32Ixa4'])
-shape-rotator.responder: imported 1 room key sessions from inviter=@inv_bot_1789035260_7352:localhost:46167 room=!6-C3FnBefsGPXKHfVz_JWW8yR4ivV6q7PEmNX32Ixa4
-joined invite !6-C3FnBefsGPXKHfVz_JWW8yR4ivV6q7PEmNX32Ixa4
+  [PASS] endorser resolved from the code's minted_by  (@inv_alice_1789041505_99a4:localhost:46167)
+mau.crypto: Device @inv_bob_1789041505_99a4:localhost:46167/BBdac5 isn't cross-signed
+[room_key_bundle] sent to 1 device(s) of @inv_bob_1789041505_99a4:localhost:46167 for room=!iu9_l7FaSHe6a4MBY0iSga8NommRlD7GAULrJMBTnJA
+  [PASS] approver._invite_to_children invited the child room  (['!iu9_l7FaSHe6a4MBY0iSga8NommRlD7GAULrJMBTnJA'])
+shape-rotator.responder: imported 1 room key sessions from inviter=@inv_bot_1789041505_99a4:localhost:46167 room=!iu9_l7FaSHe6a4MBY0iSga8NommRlD7GAULrJMBTnJA
+joined invite !iu9_l7FaSHe6a4MBY0iSga8NommRlD7GAULrJMBTnJA
   [PASS] bob auto-joined the room after the invite
   [PASS] bob's client can fetch the pre-invite event
-mau.crypto: Device @inv_alice_1789035260_7352:localhost:46167/AL03f2 isn't cross-signed
-mau.crypto: Device @inv_alice_1789035260_7352:localhost:46167/AL03f2 isn't cross-signed
-mau.crypto: Didn't find cross-signing key master of @inv_alice_1789035260_7352:localhost:46167
-  [PASS] bob decrypts alice's PRE-INVITE message via the imported bundle  (body='pre-invite history b4e3e274')
-  [PASS] endorsement JSONL contains the (endorser, invitee, code, room_id) edge  ({'endorser': '@inv_alice_1789035260_7352:localhost:46167', 'invitee': '@inv_bob_1789035260_7352:localhost:46167', 'code_or_manual': 'testcode', 'room_id': '!6-C3FnBefsGPXKHfVz_JWW8yR4ivV6q7PEmNX32Ixa4', 'ts': 1789035269.551929})
-  [PASS] endorsement edge names alice as endorser (code minted_by) and the right code  ({'endorser': '@inv_alice_1789035260_7352:localhost:46167', 'invitee': '@inv_bob_1789035260_7352:localhost:46167', 'code_or_manual': 'testcode', 'room_id': '!6-C3FnBefsGPXKHfVz_JWW8yR4ivV6q7PEmNX32Ixa4', 'ts': 1789035269.551929})
+mau.crypto: Device @inv_alice_1789041505_99a4:localhost:46167/ALb4bd isn't cross-signed
+mau.crypto: Device @inv_alice_1789041505_99a4:localhost:46167/ALb4bd isn't cross-signed
+mau.crypto: Didn't find cross-signing key master of @inv_alice_1789041505_99a4:localhost:46167
+  [PASS] bob decrypts alice's PRE-INVITE message via the imported bundle  (body='pre-invite history d6e880f2')
+  [PASS] endorsement JSONL contains the (endorser, invitee, code, room_id) edge  ({'endorser': '@inv_alice_1789041505_99a4:localhost:46167', 'invitee': '@inv_bob_1789041505_99a4:localhost:46167', 'code_or_manual': 'testcode', 'room_id': '!iu9_l7FaSHe6a4MBY0iSga8NommRlD7GAULrJMBTnJA', 'ts': 1789041514.4872706})
+  [PASS] endorsement edge names alice as endorser (code minted_by) and the right code  ({'endorser': '@inv_alice_1789041505_99a4:localhost:46167', 'invitee': '@inv_bob_1789041505_99a4:localhost:46167', 'code_or_manual': 'testcode', 'room_id': '!iu9_l7FaSHe6a4MBY0iSga8NommRlD7GAULrJMBTnJA', 'ts': 1789041514.4872706})
 
 [invite-e2e] 8/8 checks passed
 [runner] all gating tests passed
@@ -704,10 +695,10 @@ mau.crypto: Didn't find cross-signing key master of @inv_alice_1789035260_7352:l
  Container shape-rotator-e2e-3334118981-continuwuity-1  Removing
  Container shape-rotator-e2e-3334118981-continuwuity-1  Removed
  Volume shape-rotator-e2e-3334118981_knock-test-data  Removing
- Volume shape-rotator-e2e-3334118981_continuwuity-test-data  Removing
  Volume shape-rotator-e2e-3334118981_shared  Removing
+ Volume shape-rotator-e2e-3334118981_continuwuity-test-data  Removing
+ Network shape-rotator-e2e-3334118981_default  Removing
  Volume shape-rotator-e2e-3334118981_knock-test-data  Removed
  Volume shape-rotator-e2e-3334118981_shared  Removed
- Network shape-rotator-e2e-3334118981_default  Removing
  Volume shape-rotator-e2e-3334118981_continuwuity-test-data  Removed
  Network shape-rotator-e2e-3334118981_default  Removed
