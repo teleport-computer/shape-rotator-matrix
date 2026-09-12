@@ -2,12 +2,17 @@
 """End-to-end smoke test for shape-rotator-matrix.
 
 Runs against a configured homeserver (default: the deployed prod instance) and
-verifies both onboarding paths end-to-end:
+verifies the onboarding paths end-to-end:
 
   1. POST /signup/api -> new account, all "steps" true, user is joined to
      space + all children, and the DM room to the configured inviter exists.
   2. /join?code=... flow -> knock with code as reason; approver auto-approves
      within a few seconds; new user ends up invited.
+  3. Welcome-room flow (issue #3) -> POST /join/api maps a code to one public
+     #welcome-… room (idempotent, not consumed by the POST); joining the room
+     consumes the use, posts the confirmation and invites the joiner to the
+     space; duplicate joins by outsiders get nothing; after cleanup the
+     single-use code is exhausted.
 
 Leaves the homeserver in its original state by kicking both test users at
 the end. Uses stdlib only; run with plain `python3 tests/smoke.py`.
@@ -17,6 +22,9 @@ Env:
   ADMIN_TOKEN      required — used to kick test users after the test
   SIGNUP_CODE      required — a signup code with >= 1 use remaining
   KNOCK_CODE       required — a knock (invite) code with >= 1 use remaining
+  WELCOME_CODE     required — a code with >= 1 use for the welcome-room path
+  WELCOME_SINGLE   required — a code with exactly 1 use (consumed by the test)
+  WELCOME_DEAD     required — a code with 0 uses (code_exhausted branch)
   REG_TOKEN        required — continuwuity server-wide registration token
                    (used only for the knock path, to create the federated
                    "guest" account that does the knocking)
@@ -31,6 +39,9 @@ HS            = os.environ.get("HOMESERVER", "https://mtrx.shaperotator.xyz").rs
 ADMIN_TOKEN   = os.environ.get("ADMIN_TOKEN", "")
 SIGNUP_CODE   = os.environ.get("SIGNUP_CODE", "")
 KNOCK_CODE    = os.environ.get("KNOCK_CODE", "")
+WELCOME_CODE  = os.environ.get("WELCOME_CODE", "")
+WELCOME_SINGLE = os.environ.get("WELCOME_SINGLE", "")
+WELCOME_DEAD  = os.environ.get("WELCOME_DEAD", "")
 REG_TOKEN     = os.environ.get("REG_TOKEN", "")
 SPACE_ID      = os.environ.get("SPACE_ID", "!4FL8uL5OEYLATG1VH4wC2CD3pfIV6BMFId9VT7rmm-g")
 SPACE_CHILDREN = [c.strip() for c in os.environ.get(
@@ -234,8 +245,194 @@ def test_knock_path():
     return [mxid, bad_mxid]
 
 
+# --- Path C: welcome rooms (/join/api → public room Join → space invite) ---
+
+def _register_throwaway(prefix):
+    """Register a throwaway local account. Returns (mxid, token) or (None, None)."""
+    username = f"{prefix}_{int(time.time())}_{secrets.token_hex(2)}"
+    _s, init = http("POST", f"{HS}/_matrix/client/v3/register", body={})
+    session = init.get("session")
+    if not session:
+        log(f"[{prefix}] register init", False, f"body={init}")
+        return None, None
+    status, r = http("POST", f"{HS}/_matrix/client/v3/register", body={
+        "auth": {"type": "m.login.registration_token",
+                 "token": REG_TOKEN, "session": session},
+        "username": username,
+        "password": secrets.token_urlsafe(32),
+    })
+    log(f"[{prefix}] account registered", status == 200, f"status={status}")
+    if status != 200:
+        return None, None
+    return r["user_id"], r["access_token"]
+
+
+def _room_message_bodies(token, room_id):
+    _s, sync = http("GET", f"{HS}/_matrix/client/v3/sync?timeout=0", token=token)
+    room = sync.get("rooms", {}).get("join", {}).get(room_id, {})
+    evs = (room.get("timeline", {}).get("events", [])
+           + room.get("state", {}).get("events", []))
+    return [(ev.get("content") or {}).get("body", "") for ev in evs
+            if ev.get("type") == "m.room.message"]
+
+
+def test_welcome_path():
+    print("\n[welcome] welcome-room path", flush=True)
+    to_cleanup = []
+
+    # Error branches — distinct errors, and neither mints a room.
+    s, j = http("POST", f"{HS}/join/api",
+                body={"code": "definitely-not-a-code-" + secrets.token_hex(4)})
+    log("unknown code -> invalid_code",
+        s == 403 and j.get("error") == "invalid_code",
+        f"status={s} body={j}")
+    s, j = http("POST", f"{HS}/join/api", body={})
+    log("missing code -> invalid_code",
+        s == 403 and j.get("error") == "invalid_code",
+        f"status={s} body={j}")
+    s, j = http("POST", f"{HS}/join/api", body={"code": WELCOME_DEAD})
+    log("exhausted code -> code_exhausted",
+        s == 403 and j.get("error") == "code_exhausted",
+        f"status={s} body={j}")
+
+    # Idempotent mint of a SINGLE-USE code: two POSTs return the same alias,
+    # and the code still works afterwards — POSTing never consumes a use.
+    s, j = http("POST", f"{HS}/join/api", body={"code": WELCOME_SINGLE})
+    log("single-use code mints #welcome- room",
+        s == 200 and j.get("room_alias", "").startswith("#welcome-"),
+        f"status={s} body={j}")
+    if s != 200:
+        return to_cleanup
+    alias = j["room_alias"]
+    s, j2 = http("POST", f"{HS}/join/api", body={"code": WELCOME_SINGLE})
+    log("second POST returns the same alias (idempotent)",
+        s == 200 and j2.get("room_alias") == alias,
+        f"status={s} body={j2}")
+
+    mxid, token = _register_throwaway("smoke_welcome")
+    if not mxid:
+        return to_cleanup
+    to_cleanup.append(mxid)
+
+    _s, dirr = http("GET", f"{HS}/_matrix/client/v3/directory/room/"
+                      f"{urllib.parse.quote(alias)}")
+    room_id = dirr.get("room_id")
+    log("alias resolves to a room", bool(room_id), f"dir={dirr}")
+
+    # The one Element UI step: a plain public-room join via the alias.
+    s, _ = http("POST", f"{HS}/_matrix/client/v3/join/"
+                 f"{urllib.parse.quote(alias)}", token=token, body={})
+    log("user joins welcome room via alias", s == 200, f"status={s} alias={alias}")
+
+    space_prefix = SPACE_ID.split(":")[0]
+    invited = _wait_for_invite(
+        token, lambda rid: rid.split(":")[0] == space_prefix, timeout=15)
+    log("space invite after welcome-room join (within 15s)", bool(invited))
+
+    confirm = "invite sent — accept it in Element and you're in."
+    bodies = _room_message_bodies(token, room_id)
+    log("confirmation message posted in welcome room",
+        any(confirm in b for b in bodies), f"bodies={bodies}")
+
+    if invited:
+        s, _ = http("POST", f"{HS}/_matrix/client/v3/rooms/"
+                     f"{urllib.parse.quote(SPACE_ID)}/join", token=token, body={})
+        log("accepted space invite", s == 200, f"status={s}")
+        for child in SPACE_CHILDREN:
+            http("POST", f"{HS}/_matrix/client/v3/rooms/"
+                 f"{urllib.parse.quote(child)}/join", token=token, body={})
+        time.sleep(1)
+        _s, sync = http("GET", f"{HS}/_matrix/client/v3/sync?timeout=0", token=token)
+        joined = list(sync.get("rooms", {}).get("join", {}).keys())
+        log(f"joined all {len(SPACE_CHILDREN)} children via restricted rule",
+            all(any(rid.split(":")[0] == c.split(":")[0] for rid in joined)
+                for c in SPACE_CHILDREN))
+
+    # Duplicate join in a live room: an outsider with no code of their own
+    # joins the already-consumed room and must get NOTHING (exactly-once).
+    alias2 = None
+    s, j = http("POST", f"{HS}/join/api", body={"code": WELCOME_CODE})
+    log("multi-use code mints #welcome- room",
+        s == 200 and j.get("room_alias", "").startswith("#welcome-"),
+        f"status={s} body={j}")
+    if s == 200:
+        alias2 = j["room_alias"]
+        u1, t1 = _register_throwaway("smoke_wel_a")
+        u2, t2 = _register_throwaway("smoke_wel_b")
+        if u1:
+            to_cleanup.append(u1)
+        if u2:
+            to_cleanup.append(u2)
+        s1, _ = http("POST", f"{HS}/_matrix/client/v3/join/"
+                      f"{urllib.parse.quote(alias2)}", token=t1, body={})
+        log("[outsider-test] first user joins second room", s1 == 200,
+            f"status={s1}")
+        got1 = _wait_for_invite(
+            t1, lambda rid: rid.split(":")[0] == space_prefix, timeout=15)
+        log("[outsider-test] first user got the space invite", bool(got1))
+        s2, _ = http("POST", f"{HS}/_matrix/client/v3/join/"
+                      f"{urllib.parse.quote(alias2)}", token=t2, body={})
+        log("[outsider-test] second user joins the SAME room", s2 == 200,
+            f"status={s2}")
+        time.sleep(8)
+        _s, sync = http("GET", f"{HS}/_matrix/client/v3/sync?timeout=0", token=t2)
+        invites = list(sync.get("rooms", {}).get("invite", {}).keys())
+        log("[outsider-test] duplicate joiner gets no invite at all",
+            len(invites) == 0, f"invites={invites}")
+
+    # The join consumed the single use: every later POST for that code says
+    # code_exhausted (the codes check precedes the idempotent mapping lookup).
+    s, j = http("POST", f"{HS}/join/api", body={"code": WELCOME_SINGLE})
+    log("single-use code exhausted after the join (consumed exactly once)",
+        s == 403 and j.get("error") == "code_exhausted",
+        f"status={s} body={j}")
+
+    # Cleanup reap (CI runs a short WELCOME_JOINED_TTL): the room is kicked +
+    # tombstoned and its mapping deleted. Poll until the joiner is gone from
+    # the room, then confirm a re-mint: a code with uses left whose room died
+    # gets a FRESH room on the next POST (the liveness check sees the
+    # tombstone).
+    kicked = False
+    deadline = time.time() + 120
+    while time.time() < deadline:
+        _s, sync = http("GET", f"{HS}/_matrix/client/v3/sync?timeout=0", token=token)
+        joined = list(sync.get("rooms", {}).get("join", {}).keys())
+        if not any(rid == room_id for rid in joined):
+            kicked = True
+            break
+        time.sleep(3)
+    log("reaped: joiner kicked out of the welcome room", kicked)
+
+    # A code with uses left whose room died gets a FRESH room on the next
+    # POST (the liveness check sees the tombstone). The alias is
+    # deterministic per code, so detect the re-mint by the room_id the
+    # alias now resolves to. Poll: the multi-use room is reaped a few
+    # seconds after the single one (it was joined later).
+    _s, dirr = http("GET", f"{HS}/_matrix/client/v3/directory/room/"
+                      f"{urllib.parse.quote(alias2)}")
+    old_room2 = dirr.get("room_id")
+    fresh = False
+    new_room = None
+    deadline = time.time() + 120
+    while time.time() < deadline:
+        s, j = http("POST", f"{HS}/join/api", body={"code": WELCOME_CODE})
+        if s == 200:
+            _s, dirr = http("GET", f"{HS}/_matrix/client/v3/directory/room/"
+                              f"{urllib.parse.quote(alias2)}")
+            if dirr.get("room_id") != old_room2:
+                fresh = True
+                new_room = dirr.get("room_id")
+                break
+        time.sleep(3)
+    log("re-mint after reap: fresh room for a code with uses left", fresh,
+        f"old_room={old_room2} new_room={new_room} last_status={s}")
+
+    return to_cleanup
+
+
 def main():
-    missing = [k for k in ("ADMIN_TOKEN", "SIGNUP_CODE", "KNOCK_CODE", "REG_TOKEN")
+    missing = [k for k in ("ADMIN_TOKEN", "SIGNUP_CODE", "KNOCK_CODE", "REG_TOKEN",
+                           "WELCOME_CODE", "WELCOME_SINGLE", "WELCOME_DEAD")
                if not globals()[k]]
     if missing:
         print(f"missing env vars: {missing}", file=sys.stderr)
@@ -250,6 +447,9 @@ def main():
     knock_mxids = test_knock_path()
     if knock_mxids:
         to_cleanup.extend(knock_mxids)
+    welcome_mxids = test_welcome_path()
+    if welcome_mxids:
+        to_cleanup.extend(welcome_mxids)
 
     # Cleanup
     if to_cleanup:

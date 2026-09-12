@@ -1,50 +1,71 @@
-# PLAN — issue #77: session_id → age index (#76 chip 1)
+# PLAN — issue #3: replace knock-rule flow with ephemeral per-code welcome rooms
 
-Derived from the issue's `## Acceptance`. Base: `staging`. Branch: `ready-77`.
+Derived from the issue's `## Acceptance`. Base: `staging`. Branch: `ready-3`.
 
 ## Goal
-The bot must be able to tell how old a megolm session is. Build a cleartext
-index `room_id -> {session_id: earliest_origin_server_ts}` off `m.room.encrypted`
-events as they arrive in `/sync` (no decryption needed — `session_id` and
-`origin_server_ts` are cleartext). Persist to `/data`; survive restart; raise on
-read failure (no silent skip — issue #60 convention).
+`/join?code=…` stops pushing users through Element's knock UI (or the haiku
+lobby): each code maps to ONE public `#welcome-<hash>:server` room, minted
+idempotently by `POST /join/api`, consumed by the first user join (not by the
+POST), which triggers the space invite + a confirmation message. Rooms are
+tombstoned + forgotten on a timer. The knock path (knock → vetting room →
+haiku → space) stays alive untouched.
 
-## Work items (from the issue)
-- [x] `record_session(room_id, session_id, ts)` keeping the **minimum** ts, and
-      `session_age_index(room_id) -> {session_id: earliest_ts}` — added to
-      `knock-approver/approver.py` (matches the existing monolithic layout: the
-      #60 escrow helpers live here too).
-- [x] `iter_encrypted_events(rooms_data)` generator (style of
-      `iter_knock_events`) + hook into `sync_loop` after `handle_sync`, where
-      `m.room.encrypted` events are present.
-- [x] Persist to `/data/session_age_index.json` via the atomic `_load`/`_save`
-      helpers; the disk file is the source of truth on every call, so restart-
-      survival is structural, not a special case. Missing file = first-boot `{}`;
-      corrupt file propagates (raises) — no silent skip.
+## Work items
+- [x] `knock-approver/approver.py`
+  - `WELCOME_PATH` (`/data/welcome_rooms.json`), keyed by code:
+    `{room_id, room_alias, created_at, joined_by?, joined_at?}`.
+  - `POST /join/api`: distinct `invalid_code` / `code_exhausted`; idempotent
+    mint per live code (room-liveness = no `m.room.tombstone`, bot still in
+    room); NO decrement at POST time; response is `{"room_alias": …}`.
+  - Alias localpart `welcome-<sha256(code+secret)[:8]>`, secret generated
+    once and persisted (`/data/welcome_secret`) so aliases are unguessable
+    offline (issue's open question, resolved as suggested).
+  - Sync loop (onboarding bot): first non-bot `membership=join` in a mapped
+    room → decrement + persist exactly once, invite joiner to the space,
+    post "invite sent — accept it in Element and you're in.", set
+    `joined_by`/`joined_at`. Guard on `joined_by` makes replays no-ops.
+  - Cleanup each cycle: joined room reaped at `joined_at +
+    WELCOME_JOINED_TTL_SEC` (30m), unused at `created_at +
+    WELCOME_ROOM_TTL_SEC` (48h) — kick members, tombstone, leave, delete
+    mapping; on failure keep the mapping and retry.
+  - One-shot migration: leave every room in legacy `/data/lobby.json`,
+    then remove the file (no orphaned haiku lobbies).
+  - `announce_lobby_events` → `announce_welcome_events` (join announcements
+    only; unused-expiry = ghost, suppressed), `_stats_last_24h` updated to
+    the new audit events + pending = unjoined welcome rooms.
+  - Kept from the old lobby impl deliberately: `room_version: "11"`,
+    `world_readable` history, `visibility: private` (documented continuwuity
+    federation/visibility bugs — see comments in `_create_welcome_room`).
+- [x] `landing/join.html` — welcome-room copy, button label, error text
+  ("this code is no longer valid, ask whoever sent you the link for a new
+  one."), reads `room_alias` from the response, links `matrix.to/#/<alias>`.
+- [x] `landing/nginx.conf` — `/join/api` already routed; comment updated.
+- [x] `tests/smoke.py` — welcome path: invalid/exhausted errors, idempotent
+  double-mint of a single-use code (proves POST doesn't decrement), join →
+  confirmation + space invite, outsider joins the live room and gets
+  nothing, cleanup → `code_exhausted` (proves join-time decrement + mapping
+  removal).
+- [x] `tests/lobby_e2e.py` — rewritten: two users via two codes, E2EE
+  round-trip in the encrypted child, already-member redo path.
+- [x] `tests/announce_unit.py` — rewritten against the welcome store (flood
+  regression preserved).
+- [x] `tests/run_in_runner.sh`, `tests/docker-compose.test.yml`,
+  `dev/bootstrap.py` — welcome codes + short CI TTLs.
+- [x] `README.md`, `MATRIX_ONBOARDING.md` — flow docs corrected.
 
-## Acceptance (restate) + how each is verified
-A test in `tests/` against the dev stack (style of `history_e2ee_repro.py` /
-`escrow_durability.py`) → `tests/session_age_index.py`.
+## Verification
+- `bash tests/run_e2e.sh` (full local stack: continuwuity + bootstrap +
+  approver + landing nginx + runner) — the repo's gate.
+- CI runs the same on the PR, plus the path-filtered ephemeral CVM
+  validation (landing/**, knock-approver/**, tests/smoke.py all match).
+- Tier 2 walk with the envoy real-browser rig against the local stack
+  (landing page → Element join → confirmation → space invite), screenshots
+  to `.evidence/issue-3/`.
 
-1. Bot creates a room and is present from event 0.
-2. Send messages, force at least one megolm rotation so >1 session exists.
-   → force rotation by `await alice.crypto.crypto_store
-     .remove_outbound_group_sessions([room_id])` before the 2nd send (mautrix
-     then mints a new outbound session_id on the next encrypt).
-3. Every session present in `crypto_megolm_inbound_session` has an index entry.
-   → query `SELECT session_id FROM crypto_megolm_inbound_session WHERE
-     account_id=bot AND room_id=room AND withheld_code IS NULL`, assert each is
-     in `session_age_index(room_id)`.
-4. Each indexed timestamp equals the `origin_server_ts` of the earliest event
-   that used that session.
-   → back-paginate `/messages`, group `m.room.encrypted` by `session_id`,
-     take `min(origin_server_ts)`, assert == indexed value for every session.
-5. Index survives a restart of the bot.
-   → fresh Python subprocess imports `approver` against the same persisted file
-     and re-reads `session_age_index(room_id)`; compare to in-process result.
-
-Evidence: transcript captured to `.evidence/issue-77/` (Tier 1 — no user-visible
-surface; matches the `escrow_durability.py` precedent cited by the issue via #60).
-
-## Out of scope (per issue)
-Backfill of existing rooms. Any *use* of the index — that's chips 3 and 4.
+## Deliberate calls (vs the issue text / prior plan)
+- The issue's `createRoom` sketch omits version/visibility/history details;
+  the shipped lobby's hard-won `room_version 11` + `world_readable` +
+  unlisted visibility are kept.
+- The /join confirmation is exactly the issue's message; the welcome signup
+  code / onboarding-doc link / child-room invites stay on the KNOCK path
+  only (issue step 7: restricted-join covers children).

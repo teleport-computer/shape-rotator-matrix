@@ -166,8 +166,14 @@ Upstream `gateway/platforms/matrix.py` answers in cleartext rooms. The patch wra
 **Shape Rotator knock-approver pattern** (this repo):
 - Space `!4FL8uL5OEYLATG1VH4wC2CD3pfIV6BMFId9VT7rmm-g` with `join_rule=knock`
 - Child rooms (general, announcements, bot-noise) are `restricted` — auto-join for space members
-- `knock-approver` long-polls `/sync` as `shape-rotator-2`, reads `/data/codes.json`, auto-invites if the knock reason matches a code
-- Share URL: `https://mtrx.shaperotator.xyz/join?code=XYZ` — page shows the code prominently + "Open in Element" button
+- `/join?code=XYZ` maps each code to ONE public `#welcome-<sha256(code+secret)[:8]>:…`
+  room (`POST /join/api`, idempotent, state in `/data/welcome_rooms.json`);
+  the first user join consumes a use, invites them to the space, and posts a
+  confirmation — no knock UI, nothing to paste (issue #3)
+- Knocking the space with the code as the reason still works: per-knock
+  vetting room + haiku captcha, then the space invite
+- `knock-approver` long-polls `/sync` as `shape-rotator-2` (knocks + admin
+  commands) and as `@onboarding-bot` (welcome rooms)
 - `INITIAL_CODES` JSON env seeds codes on first container start; subsequent restarts only add missing codes (uses_remaining is preserved)
 
 **Stale-DM gotcha** (matrix-greeter bug, now fixed): creating a fresh DM on every redeploy when target hadn't accepted → 5 orphan rooms. **Fix:** read `m.direct` account data instead of scanning `joined_rooms` members, or persist the DM room id. GC via `rooms/{id}/leave` + `forget`.

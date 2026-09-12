@@ -28,25 +28,25 @@
 </head>
 <body>
 <h1>Join the Shape Rotator space</h1>
-<p class="sub">Click below — you'll land in a private lobby room where a bot
-asks one captcha (a haiku). Pass it and you're in the space.</p>
+<p class="sub">Click below — you'll land in a welcome room with a plain
+Join button. Join it and the bot invites you into the space.</p>
 
 <noscript><p class="missing">This page needs JavaScript.</p></noscript>
 
-<p class="status" id="status">Preparing your lobby room…</p>
+<p class="status" id="status">Preparing your welcome room…</p>
 
-<p><a class="btn" id="join-btn" href="#" aria-disabled="true">Open lobby in Element →</a></p>
+<p><a class="btn" id="join-btn" href="#" aria-disabled="true">Open the Shape Rotator welcome room in Element →</a></p>
 
 <ol>
-  <li>Click the button. It opens your <strong>private lobby room</strong> in
+  <li>Click the button. It opens your <strong>welcome room</strong> in
       Element (install Element first if you don't have it:
       <a href="https://element.io/download">desktop</a> /
       <a href="https://play.google.com/store/apps/details?id=im.vector.app">Android</a> /
       <a href="https://apps.apple.com/app/element-messenger/id1083446067">iOS</a> /
       <a href="https://app.element.io">web</a>).</li>
-  <li>Click <strong>Join the room</strong>. The bot will post a haiku challenge.</li>
-  <li>Reply with a 3-line haiku containing the keyword the bot gives you.</li>
-  <li>You'll be invited into the Shape Rotator space; accept and you're in.</li>
+  <li>Click <strong>Join</strong> — a normal join button, no code to paste.</li>
+  <li>The bot invites you into the Shape Rotator space; accept the invite
+      and you're in.</li>
 </ol>
 
 <p style="color:#888;font-size:.9em">No Matrix account yet? Element will walk you through
@@ -58,7 +58,7 @@ making one on <code>matrix.org</code> first.</p>
   const btn     = document.getElementById("join-btn");
   const status  = document.getElementById("status");
 
-  async function mintLobby() {
+  async function mintWelcome() {
     if (!code) {
       status.textContent = "No code in URL — ask whoever sent you the link.";
       status.classList.add("missing");
@@ -72,21 +72,21 @@ making one on <code>matrix.org</code> first.</p>
       });
       const j = await r.json();
       if (!r.ok) {
-        const detail = j.error || ("http_" + r.status);
-        status.textContent = "Couldn't mint lobby: " + detail
-          + (detail === "invalid_code" ? " (code already used or unknown)" : "");
+        status.textContent = (j.error === "invalid_code" || j.error === "code_exhausted")
+          ? "This code is no longer valid — ask whoever sent you the link for a new one."
+          : "Couldn't prepare the welcome room: " + (j.error || ("http_" + r.status));
         status.classList.add("missing");
         return;
       }
-      btn.href = j.url;
+      btn.href = "https://matrix.to/#/" + encodeURIComponent(j.room_alias);
       btn.removeAttribute("aria-disabled");
-      status.textContent = "Lobby ready: " + j.alias;
+      status.textContent = "Welcome room ready: " + j.room_alias;
     } catch (e) {
       status.textContent = "Network error reaching /join/api: " + e.message;
       status.classList.add("missing");
     }
   }
-  mintLobby();
+  mintWelcome();
 </script>
 </body>
 </html>

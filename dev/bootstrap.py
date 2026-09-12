@@ -243,18 +243,39 @@ def ensure_codes(state):
         state["signup_code"] = "dev-" + secrets.token_hex(6)
     if not state.get("knock_code"):
         state["knock_code"] = "dev-" + secrets.token_hex(6)
-    return state["signup_code"], state["knock_code"]
+    for i in (1, 2, 3):
+        if not state.get(f"welcome_code_{i}"):
+            state[f"welcome_code_{i}"] = "dev-welcome-" + secrets.token_hex(6)
+    # Persisted like the others: `docker compose run` re-runs this one-shot
+    # bootstrap (test-runner depends_on it), and a fresh-per-run value would
+    # mismatch the code the already-running approver seeded from the FIRST
+    # run's INITIAL_CODES.
+    if not state.get("welcome_single"):
+        state["welcome_single"] = "dev-welcome-single-" + secrets.token_hex(4)
+    return (state["signup_code"], state["knock_code"],
+            state["welcome_code_1"], state["welcome_code_2"],
+            state["welcome_code_3"], state["welcome_single"])
 
 
 def main():
     state = load_state()
     admin_mxid, admin_token = ensure_admin(state)
     space_id, child_ids = ensure_space(state, admin_mxid, admin_token)
-    signup_code, knock_code = ensure_codes(state)
+    (signup_code, knock_code, welcome_code_1, welcome_code_2,
+     welcome_code_3, welcome_single) = ensure_codes(state)
+    # Fixed string that always tests the code_exhausted branch deterministically.
+    welcome_dead = "dev-welcome-dead"
     save_state(state)
 
     signup_seed = json.dumps({signup_code: {"uses_remaining": 99, "label": "dev"}})
-    knock_seed  = json.dumps({knock_code:  {"uses_remaining": 99, "label": "dev"}})
+    welcome_seed = json.dumps({
+        knock_code:     {"uses_remaining": 99, "label": "dev"},
+        welcome_code_1: {"uses_remaining": 99, "label": "dev welcome 1"},
+        welcome_code_2: {"uses_remaining": 99, "label": "dev welcome 2"},
+        welcome_code_3: {"uses_remaining": 99, "label": "dev welcome 3"},
+        welcome_single: {"uses_remaining": 1,  "label": "dev welcome single-use"},
+        welcome_dead:   {"uses_remaining": 0,  "label": "dev welcome exhausted"},
+    })
 
     # Print exports on stderr so users who `eval` the stdout get only exports.
     def echo(line):
@@ -279,10 +300,15 @@ def main():
         echo(f"export ADMIN_COMMAND_ROOM={child_ids[-1]!r}")
     echo(f"export CONDUWUIT_REGISTRATION_TOKEN={REG_TOKEN!r}")
     echo(f"export ONBOARDING_INVITER_MXID={admin_mxid!r}")
-    echo(f"export INITIAL_CODES={knock_seed!r}")
+    echo(f"export INITIAL_CODES={welcome_seed!r}")
     echo(f"export INITIAL_SIGNUP_CODES={signup_seed!r}")
     echo(f"export DEV_SIGNUP_CODE={signup_code!r}")
     echo(f"export DEV_KNOCK_CODE={knock_code!r}")
+    echo(f"export DEV_WELCOME_CODE={welcome_code_1!r}")
+    echo(f"export DEV_WELCOME_CODE_2={welcome_code_2!r}")
+    echo(f"export DEV_WELCOME_CODE_3={welcome_code_3!r}")
+    echo(f"export DEV_WELCOME_SINGLE={welcome_single!r}")
+    echo(f"export DEV_WELCOME_DEAD={welcome_dead!r}")
     echo(f"# Admin MXID: {admin_mxid}")
     echo(f"# Space ID:   {space_id}")
     echo(f"# Children:   {' '.join(child_ids)}")

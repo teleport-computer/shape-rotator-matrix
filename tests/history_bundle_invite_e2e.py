@@ -6,8 +6,7 @@ Scenario:
      approver's bot identity. The bot joins and receives + decrypts an
      encrypted message from alice — this is the pre-invite history.
   2. Drive the REAL approver._invite_to_children() — the exact function
-     every vetted-invite path (vetting, lobby) calls after promoting a
-     user — for a fresh invitee. This performs the real invite
+     the vetted-invite path calls after promoting a user — for a fresh invitee. This performs the real invite
      (_admin_invite), the real bundle send (_send_room_key_bundle), and
      the real endorsement write (record_endorsement) — issue #62's wiring,
      unmodified from what ships in approver.py.

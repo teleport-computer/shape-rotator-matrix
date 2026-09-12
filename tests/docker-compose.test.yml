@@ -83,8 +83,12 @@ services:
         export HS=http://continuwuity:6167
         export HS_PUBLIC=http://landing:80
         # Tighter vetting timeout for faster CI: stale rooms reaped in 5 minutes
-        # rather than 2 hours.
+        # rather than 2 hours. Same for welcome rooms — joined ones reaped in
+        # 25s (the smoke test waits out the reap to observe code_exhausted),
+        # unused ones in 5 minutes.
         export VETTING_TIMEOUT_SEC=300
+        export WELCOME_JOINED_TTL_SEC=25
+        export WELCOME_ROOM_TTL_SEC=300
         export HTTP_PORT=8001
         export CRYPTO_DB=/data/bot_crypto.db
         exec python -u /app.py

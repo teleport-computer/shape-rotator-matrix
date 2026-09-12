@@ -18,6 +18,11 @@ to debug when something at the HTTP level breaks.
 - Posting a valid 3-line haiku containing the wikipedia keyword → invite
   to the space.
 - Knock with a bogus code → no invites at all.
+- Welcome-room path (issue #3): `POST /join/api` maps a code to one public
+  `#welcome-…` room idempotently (a single-use code survives two POSTs),
+  the join consumes the use and brings the confirmation + space invite,
+  an outsider joining the live room gets nothing, and after the cleanup
+  reap the code reads `code_exhausted`.
 
 Designed to also run against prod by setting `HOMESERVER` + the env vars
 in `tests/README.md` of yore. Inside the CI stack `run_in_runner.sh`
