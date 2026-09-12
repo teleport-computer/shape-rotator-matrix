@@ -1122,12 +1122,33 @@ async def join_handler(request):
             if "M_ROOM_IN_USE" not in str(e):
                 raise
             # Stale alias from this code's reaped or orphaned room (reaping
-            # deletes it, but a crash between createRoom and the mapping
-            # save can strand one). Free it and mint exactly once more.
+            # deletes it, but a failed mint — crash, or a welcome message
+            # that could not be sent — can strand one). Free it and mint
+            # exactly once more.
             print(f"[welcome] alias {full_alias} taken; freeing and "
                   f"retrying: {str(e)[:120]}", flush=True)
             await _delete_room_alias(full_alias)
             room_id = await _create_welcome_room(alias_local)
+
+        # Pinned welcome message (issue #3 flow step 3): unencrypted — the
+        # room is public by design — and visible pre-join thanks to
+        # world_readable. Sent BEFORE the mapping is saved: a welcome room
+        # without its message is not the room the spec hands out, so a
+        # send/pin failure must leave nothing persisted — the stranded
+        # alias is freed by the M_ROOM_IN_USE retry on the next request,
+        # which re-mints with the message.
+        msg = ("welcome — sit tight, you're about to be invited to the "
+               "main space. join this room to get the invite.")
+        event_id = await _send_msg_raw(room_id, msg)
+        async with aiohttp.ClientSession(
+            headers={**LOBBY_AUTH, "Content-Type": "application/json"}
+        ) as s:
+            pin_url = (f"{HS}/_matrix/client/v3/rooms/{urllib.parse.quote(room_id)}"
+                       f"/state/m.room.pinned_events")
+            async with s.put(pin_url, json={"pinned": [event_id]}) as r:
+                if r.status != 200:
+                    raise RuntimeError(
+                        f"pin welcome message {r.status}: {(await r.text())[:200]}")
     except Exception as e:
         audit({"type": "welcome_room_failed", "code": code, "err": str(e)[:300]})
         print(f"[welcome] room mint failed: {e}", flush=True)
@@ -1140,23 +1161,6 @@ async def join_handler(request):
         "created_at": time.time(),
     }
     _save(WELCOME_PATH, welcome)
-
-    # Pinned welcome message (issue #3 flow step 3): unencrypted — the room
-    # is public by design — and visible pre-join thanks to world_readable.
-    # Sent after the mapping is saved: if this raises, the room is already
-    # tracked, so a retry returns it instead of colliding on the alias.
-    msg = ("welcome — sit tight, you're about to be invited to the "
-           "main space. join this room to get the invite.")
-    event_id = await _send_msg_raw(room_id, msg)
-    async with aiohttp.ClientSession(
-        headers={**LOBBY_AUTH, "Content-Type": "application/json"}
-    ) as s:
-        pin_url = (f"{HS}/_matrix/client/v3/rooms/{urllib.parse.quote(room_id)}"
-                   f"/state/m.room.pinned_events")
-        async with s.put(pin_url, json={"pinned": [event_id]}) as r:
-            if r.status != 200:
-                raise RuntimeError(
-                    f"pin welcome message {r.status}: {(await r.text())[:200]}")
 
     audit({"type": "welcome_created", "room": room_id, "alias": full_alias,
            "code": code})

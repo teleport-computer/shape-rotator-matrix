@@ -1,13 +1,17 @@
 """Unit test for the /join/api mint path (_create_welcome_room + the
 join_handler failure handling around it).
 
-Regression for the PR #91 review finding (2026-09-10T11:17Z): a non-200
-post-create /join was logged as a warning and the mint continued, so
-/join/api persisted and returned a room whose onboarding bot was not
-joined — an unusable alias handed to the user. A non-200 must raise, so
-the handler answers create_failed without persisting the mapping or
-burning a use; the stranded alias is freed by the M_ROOM_IN_USE retry
-on the next request.
+Regressions for the PR #91 review findings:
+- 2026-09-10T11:17Z: a non-200 post-create /join was logged as a warning
+  and the mint continued, so /join/api persisted and returned a room whose
+  onboarding bot was not joined — an unusable alias handed to the user.
+- 2026-09-10T12:17Z: the mapping was saved before the welcome message was
+  sent/pinned, so a send/pin failure left a mapped room with no message
+  that later requests returned via the liveness check without retrying.
+
+Either failure must raise, so the handler answers create_failed without
+persisting the mapping or burning a use; the stranded alias is freed by
+the M_ROOM_IN_USE retry on the next request.
 
 Standalone — `python3 tests/welcome_mint_unit.py`. Doesn't need
 continuwuity: aiohttp is monkey-patched at the module level, the same
@@ -68,6 +72,8 @@ class _Session:
     mint must not even try to send or pin the welcome message."""
     create_status, create_body = 200, {"room_id": "!w:t"}
     join_status, join_body = 200, {"room_id": "!w:t"}
+    send_status, send_body = 200, {"event_id": "$1"}
+    pin_status, pin_body = 200, {}
 
     def __init__(self, headers=None):
         pass
@@ -83,15 +89,18 @@ class _Session:
         raise AssertionError(f"unexpected POST {url}")
     def put(self, url, json=None):
         if "/send/m.room.message/" in url:
-            return _Ctx(_Resp(200, {"event_id": "$1"}))
+            return _Ctx(_Resp(_Session.send_status, _Session.send_body))
         if url.endswith("/state/m.room.pinned_events"):
-            return _Ctx(_Resp(200, {}))
+            return _Ctx(_Resp(_Session.pin_status, _Session.pin_body))
         raise AssertionError(f"unexpected PUT {url}")
 
 
-def _install(create=(200, {"room_id": "!w:t"}), join=(200, {"room_id": "!w:t"})):
+def _install(create=(200, {"room_id": "!w:t"}), join=(200, {"room_id": "!w:t"}),
+            send=(200, {"event_id": "$1"}), pin=(200, {})):
     (_Session.create_status, _Session.create_body) = create
     (_Session.join_status, _Session.join_body) = join
+    (_Session.send_status, _Session.send_body) = send
+    (_Session.pin_status, _Session.pin_body) = pin
     approver.aiohttp.ClientSession = _Session
 
 
@@ -152,6 +161,37 @@ def test_handler_failed_join_persists_nothing():
     assert _audit_types() == ["welcome_room_failed"], _audit_types()
 
 
+def test_handler_failed_send_persists_nothing():
+    """PR #91 defect (2026-09-10T12:17Z): the mapping was saved before
+    the welcome message was sent, so a failed send stranded a mapped
+    room with no message that later requests returned as-is."""
+    _seed(uses=3)
+    _install(send=(500, '{"errcode":"M_UNKNOWN"}'))
+    resp = asyncio.run(approver.join_handler(_Req({"code": "dev"})))
+    assert resp.status == 500, resp.status
+    assert json.loads(resp.text) == {"error": "create_failed",
+                                     "detail": "send_msg_raw 500: "
+                                               '{"errcode":"M_UNKNOWN"}'}, resp.text
+    assert approver._load(approver.WELCOME_PATH) == {}, approver.WELCOME_PATH
+    assert _uses() == 3, _uses()
+    assert _audit_types() == ["welcome_room_failed"], _audit_types()
+
+
+def test_handler_failed_pin_persists_nothing():
+    """Same finding, pin half: the message went out but the pin failed —
+    the mapping must still not be written."""
+    _seed(uses=3)
+    _install(pin=(500, '{"errcode":"M_UNKNOWN"}'))
+    resp = asyncio.run(approver.join_handler(_Req({"code": "dev"})))
+    assert resp.status == 500, resp.status
+    assert json.loads(resp.text) == {"error": "create_failed",
+                                     "detail": "pin welcome message 500: "
+                                               '{"errcode":"M_UNKNOWN"}'}, resp.text
+    assert approver._load(approver.WELCOME_PATH) == {}, approver.WELCOME_PATH
+    assert _uses() == 3, _uses()
+    assert _audit_types() == ["welcome_room_failed"], _audit_types()
+
+
 def test_handler_happy_path_mints():
     _seed(uses=3)
     _install()
@@ -170,6 +210,8 @@ if __name__ == "__main__":
               test_create_room_raises_when_createroom_fails,
               test_happy_path_returns_room_id,
               test_handler_failed_join_persists_nothing,
+              test_handler_failed_send_persists_nothing,
+              test_handler_failed_pin_persists_nothing,
               test_handler_happy_path_mints):
         t()
         print(f"ok: {t.__name__}")
