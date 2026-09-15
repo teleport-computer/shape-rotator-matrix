@@ -2138,9 +2138,22 @@ async def build_room_key_bundle(room_id) -> dict:
     original ``m.room_key`` predates mautrix's ``shared_history`` support.
     The returned mapping is the attachment portion ready to put in the
     ``file`` field of an ``m.room_key_bundle`` to-device message.
+
+    Retention rooms (issue #79 / epic #76 chip 3) exclude sessions whose
+    earliest indexed message predates the policy window: they are reported
+    in ``withheld`` with code ``m.unauthorised`` (the bot holds the session;
+    policy denies the recipient) instead of a ``session_key``.  The in-force
+    window is the write-once ``RETENTION_PATH`` record, NOT the room's
+    ``m.room.retention`` state, which is mutable on the wire (#78).  Rooms
+    with no record keep the all-sessions behavior above.
     """
     if _ROOM_KEY_BUNDLE_STORE is None:
         raise RuntimeError("MSC4268 crypto store is not initialized")
+
+    retention = _load_retention().get(room_id)
+    if retention is not None:
+        cutoff_ms = int(time.time() * 1000) - int(retention["max_lifetime_ms"])
+        ages = session_age_index(room_id)
 
     rows = await _ROOM_KEY_BUNDLE_STORE.db.fetch(
         """
@@ -2153,6 +2166,7 @@ async def build_room_key_bundle(room_id) -> dict:
         _ROOM_KEY_BUNDLE_STORE.account_id,
     )
     room_keys, withheld = [], []
+    retention_withheld = 0
     for row in rows:
         session_id = str(row["session_id"])
         sender_key = str(row["sender_key"])
@@ -2167,6 +2181,29 @@ async def build_room_key_bundle(room_id) -> dict:
             })
             continue
 
+        if retention is not None:
+            earliest = ages.get(session_id)
+            if earliest is None or earliest < cutoff_ms:
+                # An unindexed session cannot be proven inside the window, so
+                # it is withheld too (fail closed) — the reason names it.
+                if earliest is None:
+                    reason = ("retention policy: session age unknown (not in "
+                              "the session index); withheld as if expired")
+                else:
+                    reason = ("retention policy: session is older than the "
+                              f"room's {_render_window(retention['window_seconds'])} "
+                              "retention window")
+                withheld.append({
+                    "algorithm": "m.megolm.v1.aes-sha2",
+                    "code": "m.unauthorised",
+                    "reason": reason,
+                    "room_id": str(room_id),
+                    "sender_key": sender_key,
+                    "session_id": session_id,
+                })
+                retention_withheld += 1
+                continue
+
         session = await _ROOM_KEY_BUNDLE_STORE.get_group_session(
             room_id, session_id
         )
@@ -2180,6 +2217,10 @@ async def build_room_key_bundle(room_id) -> dict:
             "session_id": session_id,
             "session_key": session.export_session(session.first_known_index),
         })
+
+    if retention_withheld:
+        print(f"[room_key_bundle] retention window withheld {retention_withheld} "
+              f"session(s) from bundle room={room_id}", flush=True)
 
     plaintext = json.dumps(
         {"room_keys": room_keys, "withheld": withheld},

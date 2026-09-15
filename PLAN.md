@@ -1,50 +1,58 @@
-# PLAN — issue #77: session_id → age index (#76 chip 1)
+# PLAN — issue #79: filter expired sessions out of build_room_key_bundle (#76 chip 3)
 
-Derived from the issue's `## Acceptance`. Base: `staging`. Branch: `ready-77`.
+Derived from the issue's `## Acceptance`. Base: `staging`. Branch: `ready-79`.
 
 ## Goal
-The bot must be able to tell how old a megolm session is. Build a cleartext
-index `room_id -> {session_id: earliest_origin_server_ts}` off `m.room.encrypted`
-events as they arrive in `/sync` (no decryption needed — `session_id` and
-`origin_server_ts` are cleartext). Persist to `/data`; survive restart; raise on
-read failure (no silent skip — issue #60 convention).
+`build_room_key_bundle()` (`knock-approver/approver.py`) returns every inbound
+session for a room today. In a retention room (#78), sessions older than the
+policy window must be left out of `room_keys` and reported in `withheld` with a
+retention-specific reason. Rooms with no policy keep today's behavior exactly
+(the #58 regression guard: `history_bundle_e2e.py` /
+`history_bundle_responder_e2e.py` must keep passing unmodified). `ESCROW_PATH`
+and the crypto store rows are not pruned — the escrow is the #60 durability
+mechanism.
 
 ## Work items (from the issue)
-- [x] `record_session(room_id, session_id, ts)` keeping the **minimum** ts, and
-      `session_age_index(room_id) -> {session_id: earliest_ts}` — added to
-      `knock-approver/approver.py` (matches the existing monolithic layout: the
-      #60 escrow helpers live here too).
-- [x] `iter_encrypted_events(rooms_data)` generator (style of
-      `iter_knock_events`) + hook into `sync_loop` after `handle_sync`, where
-      `m.room.encrypted` events are present.
-- [x] Persist to `/data/session_age_index.json` via the atomic `_load`/`_save`
-      helpers; the disk file is the source of truth on every call, so restart-
-      survival is structural, not a special case. Missing file = first-boot `{}`;
-      corrupt file propagates (raises) — no silent skip.
+- [x] Read the in-force retention policy for the room — the write-once
+      `RETENTION_PATH` record (chip 2's designated source for chip 3), NOT the
+      live `m.room.retention` state, which is mutable on the wire (#78 proved
+      the server accepts attacker PUTs; only the bot's record is immutable).
+- [x] Filter `room_keys` by the chip-1 index: `session_age_index(room_id)`
+      gives each session's earliest origin_server_ts; a session whose earliest
+      ts is before `now - max_lifetime_ms` is expired. A session with NO index
+      entry in a retention room is withheld too (fail closed, named reason).
+- [x] Populate `withheld` for policy-expired sessions: code `m.unauthorised`
+      (spec: "the user/device is not allowed to have the key" — the bot holds
+      the session; policy denies the recipient; `m.unavailable` would falsely
+      claim the key is missing), reason names the retention window.
+- [x] Prune only the outbound bundle: no `ESCROW_PATH` or crypto-row changes;
+      the builder logs a `[room_key_bundle] retention window withheld N
+      session(s)` line for operator visibility.
 
 ## Acceptance (restate) + how each is verified
-A test in `tests/` against the dev stack (style of `history_e2ee_repro.py` /
-`escrow_durability.py`) → `tests/session_age_index.py`.
+A test in `tests/` against the dev stack (style of `history_e2ee_repro.py`) →
+`tests/retention_bundle_e2e.py` (registered in `tests/run_in_runner.sh`).
 
-1. Bot creates a room and is present from event 0.
-2. Send messages, force at least one megolm rotation so >1 session exists.
-   → force rotation by `await alice.crypto.crypto_store
-     .remove_outbound_group_sessions([room_id])` before the 2nd send (mautrix
-     then mints a new outbound session_id on the next encrypt).
-3. Every session present in `crypto_megolm_inbound_session` has an index entry.
-   → query `SELECT session_id FROM crypto_megolm_inbound_session WHERE
-     account_id=bot AND room_id=room AND withheld_code IS NULL`, assert each is
-     in `session_age_index(room_id)`.
-4. Each indexed timestamp equals the `origin_server_ts` of the earliest event
-   that used that session.
-   → back-paginate `/messages`, group `m.room.encrypted` by `session_id`,
-     take `min(origin_server_ts)`, assert == indexed value for every session.
-5. Index survives a restart of the bot.
-   → fresh Python subprocess imports `approver` against the same persisted file
-     and re-reads `session_age_index(room_id)`; compare to in-process result.
+1. Retention room with a 90d policy; messages at T-100d and T-1d.
+   → factory (`_create_retention_room`) makes the room + record (1a); two
+     distinct megolm sessions via outbound-rotation (1b); the T-100d age is
+     seeded through the production `record_session()` (1c) — the CS API cannot
+     backdate `origin_server_ts`, and the index is chip 3's only clock.
+2. New member vetted in, receives the bundle.
+   → bot invite + the production `_send_room_key_bundle` funnel; the invitee
+     runs the production responder handler (2f, 2g).
+3. Recent message decrypts. (3c)
+4. Old message does not decrypt — `SessionNotFound` (missing/withheld
+   session), not a delivery failure or server error. (4)
+5. Control room with no `m.room.retention`: both messages decrypt.
+   (5a–5e: state has no retention event and no record; bundle keeps every
+   session with an empty `withheld` list; both decrypt for the invitee.)
+6. `history_bundle_e2e.py` and `history_bundle_responder_e2e.py` still pass.
+   → run unmodified by the full `tests/run_e2e.sh` gate alongside the new
+     test.
 
-Evidence: transcript captured to `.evidence/issue-77/` (Tier 1 — no user-visible
-surface; matches the `escrow_durability.py` precedent cited by the issue via #60).
-
-## Out of scope (per issue)
-Backfill of existing rooms. Any *use* of the index — that's chips 3 and 4.
+Extra regression assertions in the same test: the expired session appears in
+`withheld` but not `room_keys` and in never both (MSC4268 MUST NOT) (2a–2e);
+the crypto store still holds every inbound session and the bot still decrypts
+the old message after the build (3a, 3b) — proving the escrow path was not
+pruned.
