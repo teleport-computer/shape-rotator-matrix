@@ -100,6 +100,16 @@ DEV_HS="$HS" \
   DEV_REG_TOKEN="$CONDUWUIT_REGISTRATION_TOKEN" \
   python3 tests/retention_room_e2e.py
 
+# Retention enforcement in the MSC4268 bundle (issue #79 / epic #76 chip 3):
+# a 90d retention room withholds the expired session (withheld code
+# m.unauthorised) while the recent session still round-trips; a control
+# room with no retention record keeps the all-sessions behavior. Also
+# asserts the bundle build prunes nothing from the crypto store.
+echo "[runner] === retention_bundle_e2e.py ==="
+DEV_HS="$HS" \
+  DEV_REG_TOKEN="$CONDUWUIT_REGISTRATION_TOKEN" \
+  python3 tests/retention_bundle_e2e.py
+
 # Escrow durability (issue #60): runs the ACTUAL approver export/wipe/import
 # against a re-mint under a NEW device_id and proves the re-minted bot still
 # decrypts a pre-wipe message. Permanent regression gate — a future self-heal

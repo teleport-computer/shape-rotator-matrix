@@ -1,0 +1,2 @@
+gate image: ghcr.io/continuwuity/continuwuity:latest (pinned by tests/docker-compose.test.yml)
+digest: ghcr.io/continuwuity/continuwuity@sha256:fdf3cd0ffec66dbbce3c7e58999739355dd0c630b068bb02929a19719448d585
