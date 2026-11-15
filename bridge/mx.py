@@ -20,8 +20,14 @@ Follows MATRIX_ONBOARDING.md "mautrix-python known bugs" (non-negotiables):
 
   - wraps ``MemoryStateStore`` with ``is_encrypted`` / ``find_shared_rooms`` /
     ``get_encryption_info`` (OlmMachine silently misbehaves without them)
-  - persists ``next_batch`` via the sync store on every sync and gathers the
-    tasks ``handle_sync`` returns (skipping either drops dispatch)
+  - dispatches through a Client subclass that re-raises handler errors, and
+    re-registers mautrix's crypto handlers as ``wait_sync=True``: the stock
+    Syncer swallows every handler exception in ``_catch_errors`` and runs the
+    room-key handler detached from the sync task list, so a failing key
+    share silently advances the cursor (#93)
+  - persists ``next_batch`` via the sync store only once the handlers all
+    succeed — a failing handler raises and leaves the cursor so the batch is
+    retried (skipping the gather drops dispatch)
   - uses the unsuffixed Continuwuity room id (the ``!foo:server`` form 404s)
   - first run: cross-signs via ``OlmMachine.generate_recovery_key()`` and
     persists the recovery key, then posts exactly one outgoing message after
@@ -142,6 +148,23 @@ class _FileSyncStore(SyncStore):
         self._path.write_text(next_batch or "")
 
 
+class _FailFastClient(Client):
+    """Client whose dispatched handlers fail loud.
+
+    mautrix's Syncer wraps every dispatched handler in ``_catch_errors``,
+    which logs the exception and returns normally — a failing handler can
+    never surface through the ``handle_sync`` gather, with or without
+    ``return_exceptions``. Re-raise (keeping mautrix's log line) so
+    ``sync_once`` sees the failure and holds the /sync cursor (#93)."""
+
+    async def _catch_errors(self, handler, data):
+        try:
+            await handler(data)
+        except Exception:
+            self.log.exception("Failed to run handler")
+            raise
+
+
 async def make_client(creds, *, sync_cursor_path=SYNC_CURSOR):
     """Build a mautrix Client with a live OlmMachine backed by the on-disk
     crypto store. The crypto.db is created on first run and NEVER regenerated
@@ -162,7 +185,7 @@ async def make_client(creds, *, sync_cursor_path=SYNC_CURSOR):
     state_store = MemoryStateStore()
     sync_store = _FileSyncStore(sync_cursor_path)
 
-    client = Client(
+    client = _FailFastClient(
         mxid=UserID(creds["user_id"]),
         device_id=creds["device_id"],
         api=api,
@@ -194,26 +217,41 @@ async def make_client(creds, *, sync_cursor_path=SYNC_CURSOR):
     client.crypto_store = crypto_store
     client._mx_db = db
     client._mx_state = state
+
+    # OlmMachine (and the crypto setter's automatic decryptor) register their
+    # handlers with wait_sync=False — they run as detached background tasks,
+    # so the room-key handler is not even in handle_sync's task list and the
+    # cursor can advance past a batch whose keys were never stored (#93).
+    # Re-register every handler awaited.
+    for evt_type, handlers in list(client.event_handlers.items()):
+        for handler, props in list(handlers.items()):
+            client.remove_event_handler(evt_type, handler)
+            client.add_event_handler(
+                evt_type, handler, wait_sync=True, sync_stream=props.sync_stream
+            )
+
     return client
 
 
 async def sync_once(client, *, full_state=False, timeout=5000):
-    """One /sync cycle: persist next_batch, refresh joined-room tracking, and
-    await every handle_sync task (decrypt + dispatch)."""
+    """One /sync cycle: refresh joined-room tracking, await every handle_sync
+    task (decrypt + dispatch), and persist next_batch only after they all
+    succeed — a failing handler raises and the batch is retried from the old
+    cursor (#93)."""
     since = None if full_state else await client.sync_store.get_next_batch()
     data = await client.sync(since=since, timeout=timeout, full_state=full_state)
     if not isinstance(data, dict):
         return
-    nb = data.get("next_batch")
-    if nb:
-        await client.sync_store.put_next_batch(nb)
     client._mx_state._joined.clear()
     client._mx_state._joined.update(
         data.get("rooms", {}).get("join", {}).keys()
     )
     tasks = client.handle_sync(data)
     if tasks:
-        await asyncio.gather(*tasks, return_exceptions=True)
+        await asyncio.gather(*tasks)
+    nb = data.get("next_batch")
+    if nb:
+        await client.sync_store.put_next_batch(nb)
 
 
 async def bootstrap(client):

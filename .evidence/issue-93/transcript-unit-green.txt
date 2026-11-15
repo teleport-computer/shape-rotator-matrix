@@ -1,0 +1,10 @@
+ok: mx.sync_once raises on handler failure; cursor held, not persisted
+ok: mx.sync_once retries the failed batch from the old cursor, then advances
+ok: relay._mx_sync raises on handler failure; cursor held, not persisted
+ok: relay._mx_sync retries the failed batch, returns its timeline, advances once
+ok: make_client dispatches fail-fast (all handlers wait_sync=True)
+all tests passed
+unit exit=0
+self_heal_unit exit=0
+PASS: in-room verification request routed and replied in-room
+sas_in_room_unit exit=0

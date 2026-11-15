@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "/repo/tests/sync_cursor_unit.py", line 179, in <module>
+    asyncio.run(main())
+  File "/usr/local/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/repo/tests/sync_cursor_unit.py", line 170, in main
+    await test_mx_failure_raises_and_cursor_held()
+  File "/repo/tests/sync_cursor_unit.py", line 108, in test_mx_failure_raises_and_cursor_held
+    await _expect_failure(mx.sync_once(c, timeout=0), "mx.sync_once")
+  File "/repo/tests/sync_cursor_unit.py", line 103, in _expect_failure
+    raise AssertionError(f"{what} swallowed the handler failure")
+AssertionError: mx.sync_once swallowed the handler failure
