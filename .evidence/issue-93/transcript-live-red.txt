@@ -1,0 +1,62 @@
+[live] bot=@sc_bot_1794771017_022b:localhost:46167 alice=@sc_alice_1794771017_022b:localhost:46167
+[live] room=!TqkfLzr2Y633g-GBXRuAV1n-DI2V6B3kc5aiccDyOBk
+Device @sc_alice_1794771017_022b:localhost:46167/ALICE5809 isn't cross-signed
+Device @sc_bot_1794771017_022b:localhost:46167/BOT912a isn't cross-signed
+Device @sc_bot_1794771017_022b:localhost:46167/BOT912a isn't cross-signed
+Didn't find cross-signing key master of @sc_bot_1794771017_022b:localhost:46167
+  [PASS] success: sync_once persisted next_batch  (cursor='1391')
+Device @sc_alice_1794771017_022b:localhost:46167/ALICE5809 isn't cross-signed
+Didn't find cross-signing key master of @sc_alice_1794771017_022b:localhost:46167
+  [PASS] success: M1 decrypts (handler stored the room key)
+Device @sc_alice_1794771017_022b:localhost:46167/ALICE5809 isn't cross-signed
+Didn't find cross-signing key master of @sc_alice_1794771017_022b:localhost:46167
+Didn't find cross-signing key master of @sc_bot_1794771017_022b:localhost:46167
+  [FAIL] failure: handler exception surfaced (raised)  (no exception)
+  [FAIL] failure: cursor held at previous batch  (cursor='1398' prev='1391')
+Failed to run handler
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/mautrix/client/syncer.py", line 265, in _catch_errors
+    await handler(data)
+  File "/usr/local/lib/python3.11/site-packages/mautrix/crypto/machine.py", line 233, in handle_to_device_event
+    decrypted_evt = await self._decrypt_olm_event(evt)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/mautrix/crypto/decrypt_olm.py", line 42, in _decrypt_olm_event
+    plaintext = await self._decrypt_olm_ciphertext(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/mautrix/crypto/decrypt_olm.py", line 72, in _decrypt_olm_ciphertext
+    plaintext = await self._try_decrypt_olm_ciphertext(sender_key, message)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/mautrix/crypto/decrypt_olm.py", line 123, in _try_decrypt_olm_ciphertext
+    await self.crypto_store.update_session(sender_key, session)
+  File "/usr/local/lib/python3.11/site-packages/mautrix/crypto/store/asyncpg/store.py", line 230, in update_session
+    await self.db.execute(
+  File "/usr/local/lib/python3.11/site-packages/mautrix/util/async_db/database.py", line 155, in execute
+    return await conn.execute(query, *args, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/mautrix/util/async_db/connection.py", line 38, in wrapper
+    ret = await func(self, arg, *args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/mautrix/util/async_db/connection.py", line 81, in execute
+    return await self.wrapped.execute(query, *args, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/mautrix/util/async_db/aiosqlite.py", line 64, in execute
+    return await self.__execute(query, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/aiosqlite/core.py", line 223, in execute
+    cursor = await self._execute(self._conn.execute, sql, parameters)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/aiosqlite/core.py", line 160, in _execute
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/aiosqlite/core.py", line 63, in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+sqlite3.OperationalError: database is locked
+Failed to decrypt $b02-PdMJ_UJNhReTDXbpMgkyG7m7huhYDd1FH0KXUeE: Failed to decrypt megolm event: no session with given ID oNUCrJ5CdDH0AB/vNoM55ybiUGMxUv47deRPWp6Vmh8 found
+  [PASS] failure: M2 not decryptable yet (key lost with the failed batch)
+[live] in-process retry succeeded
+  [PASS] recovery: cursor advanced after the retry  (cursor='1398')
+Didn't find cross-signing key master of @sc_alice_1794771017_022b:localhost:46167
+  [FAIL] recovery: retried batch stored the room key — M2 decrypts
+
+[live] 4/7 checks passed

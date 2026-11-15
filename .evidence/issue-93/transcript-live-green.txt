@@ -1,0 +1,99 @@
+[live] bot=@sc_bot_1794771049_f3a3:localhost:46167 alice=@sc_alice_1794771049_f3a3:localhost:46167
+[live] room=!dLwJrB5nv8HxJVvYQAk9jjuzJNtLzjy2E---TQ0NzqQ
+Device @sc_alice_1794771049_f3a3:localhost:46167/ALICE58d9 isn't cross-signed
+Device @sc_bot_1794771049_f3a3:localhost:46167/BOT3d83 isn't cross-signed
+Device @sc_bot_1794771049_f3a3:localhost:46167/BOT3d83 isn't cross-signed
+Didn't find cross-signing key master of @sc_bot_1794771049_f3a3:localhost:46167
+Device @sc_alice_1794771049_f3a3:localhost:46167/ALICE58d9 isn't cross-signed
+Device @sc_alice_1794771049_f3a3:localhost:46167/ALICE58d9 isn't cross-signed
+Didn't find cross-signing key master of @sc_alice_1794771049_f3a3:localhost:46167
+  [PASS] success: sync_once persisted next_batch  (cursor='1602')
+Didn't find cross-signing key master of @sc_alice_1794771049_f3a3:localhost:46167
+  [PASS] success: M1 decrypts (handler stored the room key)
+Didn't find cross-signing key master of @sc_bot_1794771049_f3a3:localhost:46167
+Failed to run handler
+Traceback (most recent call last):
+  File "/repo/bridge/mx.py", line 162, in _catch_errors
+    await handler(data)
+  File "/usr/local/lib/python3.11/site-packages/mautrix/crypto/machine.py", line 233, in handle_to_device_event
+    decrypted_evt = await self._decrypt_olm_event(evt)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/mautrix/crypto/decrypt_olm.py", line 42, in _decrypt_olm_event
+    plaintext = await self._decrypt_olm_ciphertext(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/mautrix/crypto/decrypt_olm.py", line 72, in _decrypt_olm_ciphertext
+    plaintext = await self._try_decrypt_olm_ciphertext(sender_key, message)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/mautrix/crypto/decrypt_olm.py", line 123, in _try_decrypt_olm_ciphertext
+    await self.crypto_store.update_session(sender_key, session)
+  File "/usr/local/lib/python3.11/site-packages/mautrix/crypto/store/asyncpg/store.py", line 230, in update_session
+    await self.db.execute(
+  File "/usr/local/lib/python3.11/site-packages/mautrix/util/async_db/database.py", line 155, in execute
+    return await conn.execute(query, *args, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/mautrix/util/async_db/connection.py", line 38, in wrapper
+    ret = await func(self, arg, *args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/mautrix/util/async_db/connection.py", line 81, in execute
+    return await self.wrapped.execute(query, *args, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/mautrix/util/async_db/aiosqlite.py", line 64, in execute
+    return await self.__execute(query, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/aiosqlite/core.py", line 223, in execute
+    cursor = await self._execute(self._conn.execute, sql, parameters)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/aiosqlite/core.py", line 160, in _execute
+    return await future
+           ^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/aiosqlite/core.py", line 63, in _connection_worker_thread
+    result = function()
+             ^^^^^^^^^^
+sqlite3.OperationalError: database is locked
+[live] sync_once raised OperationalError: database is locked
+  [PASS] failure: handler exception surfaced (raised)  (OperationalError)
+  [PASS] failure: cursor held at previous batch  (cursor='1602' prev='1602')
+Failed to decrypt $EZocI7wjxPn7313tKK2Zlxbnvkv91kis-fc5Q59djd0: Failed to decrypt megolm event: no session with given ID rL+50S0PIgOgBQzHRYDjQUpBDQok/9AStHRWrQhcvTo found
+  [PASS] failure: M2 not decryptable yet (key lost with the failed batch)
+Found matching session yet decryption failed for sender @sc_alice_1794771049_f3a3:localhost:46167 with key ZpDG4mcBohAx0R/10ch+cprECVW1EV/c4hyi1gMk6HU
+Failed to run handler
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/mautrix/crypto/decrypt_olm.py", line 116, in _try_decrypt_olm_ciphertext
+    plaintext = session.decrypt(message)
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/mautrix/crypto/sessions.py", line 66, in decrypt
+    plaintext = super().decrypt(
+                ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/olm/session.py", line 317, in decrypt
+    self._check_error(plaintext_length)
+  File "/usr/local/lib/python3.11/site-packages/olm/session.py", line 149, in _check_error
+    raise OlmSessionError(last_error)
+olm.session.OlmSessionError: BAD_MESSAGE_MAC
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/repo/bridge/mx.py", line 162, in _catch_errors
+    await handler(data)
+  File "/usr/local/lib/python3.11/site-packages/mautrix/crypto/machine.py", line 233, in handle_to_device_event
+    decrypted_evt = await self._decrypt_olm_event(evt)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/mautrix/crypto/decrypt_olm.py", line 42, in _decrypt_olm_event
+    plaintext = await self._decrypt_olm_ciphertext(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/mautrix/crypto/decrypt_olm.py", line 72, in _decrypt_olm_ciphertext
+    plaintext = await self._try_decrypt_olm_ciphertext(sender_key, message)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/mautrix/crypto/decrypt_olm.py", line 119, in _try_decrypt_olm_ciphertext
+    raise MatchingSessionDecryptionError(
+mautrix.errors.crypto.MatchingSessionDecryptionError: decryption failed with matching session
+[live] in-process retry raises MatchingSessionDecryptionError (olm ratchet consumed the message) — restarting the client
+Encryption info for !dLwJrB5nv8HxJVvYQAk9jjuzJNtLzjy2E---TQ0NzqQ not found in state store, fetching from server
+Failed to decrypt $EZocI7wjxPn7313tKK2Zlxbnvkv91kis-fc5Q59djd0: Failed to decrypt megolm event: no session with given ID rL+50S0PIgOgBQzHRYDjQUpBDQok/9AStHRWrQhcvTo found
+  [PASS] recovery: cursor advanced after the retry  (cursor='1609')
+Device @sc_alice_1794771049_f3a3:localhost:46167/ALICE58d9 isn't cross-signed
+Didn't find cross-signing key master of @sc_alice_1794771049_f3a3:localhost:46167
+Didn't find cross-signing key master of @sc_alice_1794771049_f3a3:localhost:46167
+  [PASS] recovery: retried batch stored the room key — M2 decrypts
+
+[live] 7/7 checks passed

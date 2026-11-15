@@ -253,22 +253,24 @@ async def tg_send_relay(tg_client, tg_chat_id: int, sender: str, text: str) -> N
 async def _mx_sync(mx_client, room: str, *, full_state: bool = False, timeout: int = MX_SYNC_TIMEOUT):
     """One /sync cycle.
 
-    Persists next_batch every call, refreshes the joined-room set the crypto
-    state store needs, and lets OlmMachine process to-device events (megolm
-    key shares) by gathering handle_sync's tasks. Returns the bridge room's
-    raw timeline events (oldest-first) for the caller to relay."""
+    Refreshes the joined-room set the crypto state store needs, lets
+    OlmMachine process to-device events (megolm key shares) by gathering
+    handle_sync's tasks, and persists next_batch only after they all
+    succeed — a failing handler raises and the batch is retried from the
+    old cursor (#93). Returns the bridge room's raw timeline events
+    (oldest-first) for the caller to relay."""
     since = None if full_state else await mx_client.sync_store.get_next_batch()
     data = await mx_client.sync(since=since, timeout=timeout, full_state=full_state)
     if not isinstance(data, dict):
         return []
-    nb = data.get("next_batch")
-    if nb:
-        await mx_client.sync_store.put_next_batch(nb)
     mx_client._mx_state._joined.clear()
     mx_client._mx_state._joined.update(data.get("rooms", {}).get("join", {}).keys())
     tasks = mx_client.handle_sync(data)
     if tasks:
-        await asyncio.gather(*tasks, return_exceptions=True)
+        await asyncio.gather(*tasks)
+    nb = data.get("next_batch")
+    if nb:
+        await mx_client.sync_store.put_next_batch(nb)
     return (
         data.get("rooms", {})
         .get("join", {})
